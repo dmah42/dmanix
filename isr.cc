@@ -1,20 +1,22 @@
+#include "isr.h"
+
 #include "base.h"
+#include "io.h"
 #include "screen.h"
 
-namespace {
+namespace isr {
 
-struct registers {
-  uint32_t ds;
-  uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-  uint32_t int_no, err_code;
-  uint32_t eip, cs, eflags, useresp, ss;
-};
+handler handlers[256] = {0};
 
-}  // namespace
+void register_handler(uint8_t interrupt, handler h) {
+  handlers[interrupt] = h;
+}
+
+}
 
 extern "C" {
-  // TODO: handle interrupts
-void isr_handler(registers regs) {
+
+void isr_handler(isr::registers regs) {
   screen::puts("received interrupt:\n");
   screen::puts(" DS:\t");
   screen::puth(regs.ds);
@@ -57,5 +59,20 @@ void isr_handler(registers regs) {
   screen::puts(" SS: ");
   screen::puth(regs.ss);
   screen::putc('\n');
+
+  if (isr::handlers[regs.int_no] != 0)
+    isr::handlers[regs.int_no](regs);
 }
+
+void irq_handler(isr::registers regs) {
+  // Send EOI to PICS
+  if (regs.int_no >= 40)
+    io::outb(0xA0, 0x20);
+  io::outb(0x20, 0x20);
+
+  if (isr::handlers[regs.int_no] != 0)
+    isr::handlers[regs.int_no](regs);
 }
+
+}
+

@@ -1,4 +1,5 @@
 #include "base.h"
+#include "io.h"
 #include "memory.h"
 
 // Defined in asm.
@@ -38,6 +39,23 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
+
+extern void irq0();
+extern void irq1();
+extern void irq2();
+extern void irq3();
+extern void irq4();
+extern void irq5();
+extern void irq6();
+extern void irq7();
+extern void irq8();
+extern void irq9();
+extern void irq10();
+extern void irq11();
+extern void irq12();
+extern void irq13();
+extern void irq14();
+extern void irq15();
 }
 
 namespace dt {
@@ -110,10 +128,7 @@ void idt_set_gate(Interrupt interrupt, uint32_t base, uint16_t sel, uint8_t flag
   idt_entries[interrupt].flags = flags /* | 0x60 */;
 }
 
-}  // namespace
-
-void initialize() {
-  // Initialize GDT
+void gdt_init() {
   gdt_pointer.limit = (sizeof(gdt_entry) * NUM_SEGMENTS) - 1;
   gdt_pointer.base = (uint32_t)&gdt_entries;
 
@@ -125,13 +140,65 @@ void initialize() {
   gdt_set_gate(SEGMENT_USER_DATA, 0, 0xFFFFFFFF, 0xF2, 0xCF);
 
   gdt_flush((uint32_t)&gdt_pointer);
-  
-  // Initialize IDT
+}
+
+const uint16_t MASTER_PIC = 0x20;
+const uint16_t SLAVE_PIC = 0xA0;
+const uint16_t MASTER_PIC_COMMAND = MASTER_PIC;
+const uint16_t MASTER_PIC_DATA = MASTER_PIC + 1;
+const uint16_t SLAVE_PIC_COMMAND = SLAVE_PIC;
+const uint16_t SLAVE_PIC_DATA = SLAVE_PIC + 1;
+
+void pic_remap() {
+  // Initialize PICs
+  io::outb(MASTER_PIC_COMMAND, 0x11);
+  io::outb(SLAVE_PIC_COMMAND, 0x11);
+
+  // Set offsets
+  io::outb(MASTER_PIC_DATA, 0x20);
+  io::outb(SLAVE_PIC_DATA, 0x28);
+
+  // Set connections
+  io::outb(MASTER_PIC_DATA, 0x4);
+  io::outb(SLAVE_PIC_DATA, 0x2);
+
+  // Set 8086 mode
+  io::outb(MASTER_PIC_DATA, 0x1);
+  io::outb(SLAVE_PIC_DATA, 0x1);
+
+  // Complete
+  io::outb(MASTER_PIC_DATA, 0x0);
+  io::outb(SLAVE_PIC_DATA, 0x0);
+}
+
+void pic_set_gates() {
+  idt_set_gate(32, (uint32_t)irq0, 0x08, 0x8E);
+  idt_set_gate(33, (uint32_t)irq1, 0x08, 0x8E);
+  idt_set_gate(34, (uint32_t)irq2, 0x08, 0x8E);
+  idt_set_gate(35, (uint32_t)irq3, 0x08, 0x8E);
+  idt_set_gate(36, (uint32_t)irq4, 0x08, 0x8E);
+  idt_set_gate(37, (uint32_t)irq5, 0x08, 0x8E);
+  idt_set_gate(38, (uint32_t)irq6, 0x08, 0x8E);
+  idt_set_gate(39, (uint32_t)irq7, 0x08, 0x8E);
+  idt_set_gate(40, (uint32_t)irq8, 0x08, 0x8E);
+  idt_set_gate(41, (uint32_t)irq9, 0x08, 0x8E);
+  idt_set_gate(42, (uint32_t)irq10, 0x08, 0x8E);
+  idt_set_gate(43, (uint32_t)irq11, 0x08, 0x8E);
+  idt_set_gate(44, (uint32_t)irq12, 0x08, 0x8E);
+  idt_set_gate(45, (uint32_t)irq13, 0x08, 0x8E);
+  idt_set_gate(46, (uint32_t)irq14, 0x08, 0x8E);
+  idt_set_gate(47, (uint32_t)irq15, 0x08, 0x8E);
+}
+
+void idt_init() {
   idt_pointer.limit = (sizeof(idt_entry) * sizeof(idt_entries)) - 1;
   idt_pointer.base = (uint32_t)&idt_entries;
 
   memory::set((uint8_t*)idt_entries, (uint8_t)0,
               sizeof(idt_entry) * sizeof(idt_entries));
+
+  // Remap IRQ table to avoid conflicts
+  pic_remap();
 
   // TODO: better way
   idt_set_gate(0,  (uint32_t)isr0, 0x08, 0x8E);
@@ -167,7 +234,16 @@ void initialize() {
   idt_set_gate(30, (uint32_t)isr30, 0x08, 0x8E);
   idt_set_gate(31, (uint32_t)isr31, 0x08, 0x8E);
 
+  pic_set_gates();
+
   idt_flush((uint32_t)&idt_pointer);
+}
+
+}  // namespace
+
+void initialize() {
+  gdt_init();
+  idt_init();
 }
 
 }  // namespace dt
