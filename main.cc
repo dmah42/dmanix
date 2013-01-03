@@ -1,5 +1,6 @@
 #include "dt.h"
 #include "screen.h"
+#include "timer.h"
 
 void vga_test() {
   screen::puts("0         1         2         3         4         5         6         7       \n");
@@ -46,7 +47,10 @@ int main() {//const multiboot* multiboot_ptr) {
   screen::reset_color();
 
   // vga_test();
-  interrupt_test();
+  //interrupt_test();
+
+  // Start the clock at 50Hz.
+  timer::initialize(50);
 
   for (;;) { }
   return 0;
