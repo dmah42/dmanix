@@ -15,7 +15,7 @@ namespace {
 uint16_t* video_memory = (uint16_t*) 0xB8000;
 
 uint8_t back_color = COLOR_BLACK;
-uint8_t fore_color = COLOR_WHITE;
+uint8_t fore_color = COLOR_LIGHT_GREY;
 
 struct cursor {
   cursor() : x(0), y(0) { }
@@ -75,9 +75,10 @@ void putc(char c) {
   }
 
   // check for wrap
-  if (cursor.x >= NUM_COLS)
-    puts("\r\n.. ");
-
+  if (cursor.x >= NUM_COLS) {
+    cursor.x = 0;
+    ++cursor.y;
+  }
   scroll();
   cursor.move();
 }
@@ -86,6 +87,52 @@ void puts(const char* s) {
   const char* ps = s;
   while (*ps != '\0')
     putc(*ps++);
+}
+
+void puth(uint32_t hex) {
+  puts("0x");
+
+  uint8_t no_zeroes = 1;
+  for (int i = 28; i > 0; i -= 4) {
+    uint8_t h = (hex >> i) & 0xf;
+    if (h == 0 && no_zeroes != 0)
+      continue;
+
+    no_zeroes = 0;
+    if (h >= 0xA) {
+      putc(h - 0xA + 'a');
+    } else {
+      putc(h + '0');
+    }
+  }
+
+  uint8_t h = hex & 0xF;
+  if (h >= 0xA)
+    putc(h - 0xA + 'a');
+  else
+    putc(h + '0');
+}
+
+// TODO: signed
+void putd(uint32_t dec) {
+  if (dec == 0) {
+    putc('0');
+    return;
+  }
+
+  char c[32] = {0};
+  int i = 0;
+  while (dec > 0) {
+    c[i++] = '0' + dec % 10;
+    dec /= 10;
+  }
+
+  for (int j = 0; j < i; ++j) {
+    char tmp = c[j];
+    c[j] = c[i - j];
+    c[i - j] = tmp;
+  }
+  puts(c);
 }
 
 void clear() {
@@ -98,7 +145,7 @@ void clear() {
 }
 
 void reset_color() {
-  set_color(COLOR_WHITE, COLOR_BLACK);
+  set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
 
 void set_color(Color fore, Color back) {
