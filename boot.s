@@ -26,7 +26,7 @@ mboot:
 [EXTERN main]       ; entry point of C++ code
 
 start:
-  ;push ebx          ; load multiboot header location
+  push ebx          ; load multiboot header location
 
   ; execute the kernel
   cli               ; disable interrupts

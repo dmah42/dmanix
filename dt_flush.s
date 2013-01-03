@@ -1,5 +1,4 @@
 [GLOBAL gdt_flush]
-
 gdt_flush:
   mov eax, [esp+4]  ; Get the pointer to the GDT
   lgdt [eax]        ; and load it
@@ -11,6 +10,11 @@ gdt_flush:
   mov gs, ax
   mov ss, ax
   jmp 0x08:.flush   ; 0x08 is the offset to our code segment
-
 .flush:
+  ret
+
+[GLOBAL idt_flush]
+idt_flush:
+  mov eax, [esp+4]
+  lidt [eax]
   ret
