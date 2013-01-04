@@ -1,9 +1,11 @@
 #include "dt.h"
+#include "heap.h"
 #include "paging.h"
 #include "screen.h"
 #include "timer.h"
 
-void vga_test() {
+namespace test {
+void vga() {
   screen::puts("0         1         2         3         4         5         6         7       \n");
   screen::puts("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
   screen::puts("2\n");
@@ -32,7 +34,12 @@ void vga_test() {
   screen::puts("25");
 }
 
-void interrupt_test() {
+void colors() {
+  // TODO
+  PANIC("Unimplemented!");
+}
+
+void interrupt() {
   asm volatile("int $0x3");
   asm volatile("int $0x4");
 }
@@ -43,15 +50,37 @@ void timer_callback(uint32_t tick) {
   screen::putc('\n');
 }
 
-void timer_test() {
+void timer() {
   timer::RegisterCallback(timer_callback);
 }
 
-void page_fault_test() {
+void page_fault() {
   uint32_t* ptr = (uint32_t*)0xA0000000;
   uint32_t do_page_fault = *ptr;
   (void) do_page_fault;
 }
+
+void memory() {
+  screen::puts("memory test start\n");
+  void* a = kalloc(8);
+  screen::puts("a: ");
+  screen::puth((uint32_t) a);
+  void* b = kalloc(8);
+  screen::puts(", b: ");
+  screen::puth((uint32_t) b);
+
+  screen::puts("\nabout to free\n");
+  kfree(b);
+  kfree(a);
+  screen::puts("freed\n");
+  void* d = kalloc(12);
+  screen::puts("d: ");
+  screen::puth((uint32_t) d);
+  kfree(d); 
+  screen::putc('\n');
+}
+
+}  // namespace test
 
 int main() {//const multiboot* multiboot_ptr) {
   asm volatile("sti");
@@ -59,6 +88,9 @@ int main() {//const multiboot* multiboot_ptr) {
 
   dt::Initialize();
   timer::Initialize(50);
+  
+  // test::memory();
+
   paging::Initialize();
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
@@ -67,10 +99,12 @@ int main() {//const multiboot* multiboot_ptr) {
   screen::puts("dma OS\n");
   screen::ResetColor();
 
-  // vga_test();
-  // interrupt_test();
-  // timer_test();
-  page_fault_test();
+  // test::vga();
+  // test::colors();
+  // test::interrupt();
+  // test::timer();
+  // test::page_fault();
+  // test::memory();
 
   return 0;
 }

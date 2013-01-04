@@ -1,14 +1,17 @@
 #include "paging.h"
 
 #include "base.h"
+#include "heap.h"
 #include "isr.h"
-#include "kheap.h"
 #include "memory.h"
 #include "screen.h"
 
-namespace kheap {
 extern uint32_t base_address;
-}
+
+#define KHEAP_START         0xC0000000
+#define KHEAP_INITIAL_SIZE  0x100000
+
+Heap* kheap = 0;
 
 namespace paging {
 namespace {
@@ -126,7 +129,8 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == 0 && make) {
     uint32_t tmp;
-    dir->tables[table_index] = (Table*) kheap::alloc_pa(sizeof(Table), &tmp);
+    dir->tables[table_index] = (Table*) kalloc_pa(sizeof(Table), &tmp);
+    memory::set((uint8_t*) dir->tables[table_index], (uint8_t) 0, sizeof(Table));
     dir->physical[table_index] = tmp | 0x7;  // PRESENT | RW | USER
   }
 
@@ -166,23 +170,44 @@ void PageFault(const isr::Registers& regs) {
 
 void Initialize() {
   num_frames = mem_end / 0x1000;
-  frames = (uint32_t*) kheap::alloc(INDEX_FROM_BIT(num_frames));
+  frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
   memory::set((uint8_t*) frames, (uint8_t) 0, INDEX_FROM_BIT(num_frames));
 
   // Create the page directory
-  kernel_directory = (Directory*) kheap::alloc_pa(sizeof(Directory));
+  kernel_directory = (Directory*) kalloc_pa(sizeof(Directory));
+  memory::set((uint8_t*) kernel_directory, (uint8_t) 0, sizeof(Directory));
   current_directory = kernel_directory;
 
+  // Map pages in the kernel heap area.
+  // Call GetPage but not AllocFrame. Tables can be created where necessary and
+  // we can't allocate frames as they need to be identity mapped below.
   uint32_t i = 0;
-  while (i < kheap::base_address) {
+  for (i = KHEAP_START; i < KHEAP_START + KHEAP_INITIAL_SIZE; i += 0x1000)
+    GetPage(i, true, kernel_directory);
+
+  i = 0;
+  while (i < base_address + 0x1000) {
     AllocFrame(GetPage(i, true, kernel_directory), false, false);
     i += 0x1000;
   }
+
+  // Allocate the pages we mapped
+  for (i = KHEAP_START; i < KHEAP_START + KHEAP_INITIAL_SIZE; i += 0x1000)
+    AllocFrame(GetPage(i, true, kernel_directory), false, false);
 
   // TODO: interrupt constants
   isr::RegisterHandler(14, PageFault);
 
   SwitchPageDirectory(kernel_directory);
+
+  // Create the kernel heap
+  kheap = Heap::Create(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE,
+                       0xCFFFF000, false, false);
+}
+
+uint32_t GetPhysicalAddress(uint32_t address) {
+  Page* page = GetPage(address, false, kernel_directory);
+  return page->frame * 0x1000 + (address & 0xFFF);
 }
 
 }  // namespace paging
