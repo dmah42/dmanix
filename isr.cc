@@ -6,9 +6,9 @@
 
 namespace isr {
 
-handler handlers[256] = {0};
+Handler handlers[256] = {0};
 
-void register_handler(uint8_t interrupt, handler h) {
+void RegisterHandler(Interrupt interrupt, Handler h) {
   handlers[interrupt] = h;
 }
 
@@ -16,7 +16,7 @@ void register_handler(uint8_t interrupt, handler h) {
 
 extern "C" {
 
-void isr_handler(isr::registers regs) {
+void isr_handler(isr::Registers regs) {
   screen::puts("received interrupt:\n");
   screen::puts(" DS:\t");
   screen::puth(regs.ds);
@@ -64,7 +64,7 @@ void isr_handler(isr::registers regs) {
     isr::handlers[regs.int_no](regs);
 }
 
-void irq_handler(isr::registers regs) {
+void irq_handler(isr::Registers regs) {
   // Send EOI to PICS
   if (regs.int_no >= 40)
     io::outb(0xA0, 0x20);

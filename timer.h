@@ -5,7 +5,7 @@
 
 namespace timer {
 
-void initialize(uint32_t frequency);
+void Initialize(uint32_t frequency);
 
 }
 

@@ -2,7 +2,9 @@
 #define DT_H
 
 namespace dt {
-void initialize();
-}
+
+void Initialize();
+
+}  // namespace dt
 
 #endif  // DT_H

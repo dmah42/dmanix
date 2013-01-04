@@ -17,10 +17,10 @@ uint16_t* video_memory = (uint16_t*) 0xB8000;
 uint8_t back_color = COLOR_BLACK;
 uint8_t fore_color = COLOR_LIGHT_GREY;
 
-struct cursor {
-  cursor() : x(0), y(0) { }
-  void reset() { x = y = 0; }
-  void move() {
+struct Cursor {
+  Cursor() : x(0), y(0) { }
+  void Reset() { x = y = 0; }
+  void Move() const {
     uint16_t index = y * NUM_COLS + x;
     io::outb(0x3D4, 14);
     io::outb(0x3D5, index >> 8);
@@ -30,7 +30,7 @@ struct cursor {
   int x, y;
 } cursor;
 
-void scroll() {
+void Scroll() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
@@ -79,8 +79,8 @@ void putc(char c) {
     cursor.x = 0;
     ++cursor.y;
   }
-  scroll();
-  cursor.move();
+  Scroll();
+  cursor.Move();
 }
 
 void puts(const char* s) {
@@ -127,28 +127,27 @@ void putd(uint32_t dec) {
     dec /= 10;
   }
 
-  for (int j = 0; j < i; ++j) {
-    char tmp = c[j];
-    c[j] = c[i - j];
-    c[i - j] = tmp;
-  }
-  puts(c);
+  char c2[32] = {0};
+  int j = 0;
+  while (--i >= 0)
+    c2[i] = c[j++];
+  puts(c2);
 }
 
-void clear() {
+void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
   memory::set(video_memory, blank, NUM_COLS * NUM_ROWS - 1);
-  cursor.reset();
-  cursor.move();
+  cursor.Reset();
+  cursor.Move();
 }
 
-void reset_color() {
-  set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
+void ResetColor() {
+  SetColor(COLOR_LIGHT_GREY, COLOR_BLACK);
 }
 
-void set_color(Color fore, Color back) {
+void SetColor(Color fore, Color back) {
   fore_color = fore;
   back_color = back;
 }

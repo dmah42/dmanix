@@ -29,10 +29,10 @@ void puts(const char* s);
 void puth(uint32_t h);
 void putd(uint32_t d);
 
-void clear();
+void Clear();
 
-void reset_color();
-void set_color(Color fore, Color back);
+void ResetColor();
+void SetColor(Color fore, Color back);
 
 }  // namespace screen
 

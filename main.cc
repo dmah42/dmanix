@@ -37,21 +37,18 @@ void interrupt_test() {
 }
 
 int main() {//const multiboot* multiboot_ptr) {
-  dt::initialize();
-
-  screen::clear();
-  screen::set_color(COLOR_WHITE, COLOR_BLACK);
+  dt::Initialize();
+  screen::Clear();
+  screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
-  screen::set_color(COLOR_BLUE, COLOR_BLACK);
+  screen::SetColor(COLOR_BLUE, COLOR_BLACK);
   screen::puts("DMAOS...\n");
-  screen::reset_color();
+  screen::ResetColor();
 
   // vga_test();
   //interrupt_test();
+  asm volatile("sti");
+  timer::Initialize(50);
 
-  // Start the clock at 50Hz.
-  timer::initialize(50);
-
-  for (;;) { }
   return 0;
 }

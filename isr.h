@@ -22,15 +22,17 @@ const uint8_t IRQ15 = 47;
 
 namespace isr {
 
-struct registers {
+typedef uint8_t Interrupt;
+
+struct Registers {
   uint32_t ds;
   uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
   uint32_t int_no, err_code;
   uint32_t eip, cs, eflags, useresp, ss;
 };
 
-typedef void (*handler)(const registers&);
-void register_handler(uint8_t interrupt, handler h);
+typedef void (*Handler)(const Registers&);
+void RegisterHandler(Interrupt interrupt, Handler h);
 
 }
 
