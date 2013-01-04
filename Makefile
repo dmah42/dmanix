@@ -1,4 +1,4 @@
-SOURCES=boot.o dt.o dt_flush.o interrupt.o io.o irq.o isr.o main.o screen.o timer.o
+SOURCES=base.o boot.o dt.o dt_flush.o interrupt.o io.o irq.o isr.o kheap.o main.o paging.o screen.o timer.o
 
 CXXFLAGS=-Wall -Werror -Wno-main -Os -nostdlib -nostdinc -fno-builtin -fno-stack-protector -m32
 LDFLAGS=-Tlink.ld -melf_i386

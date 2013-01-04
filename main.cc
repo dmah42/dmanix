@@ -1,4 +1,5 @@
 #include "dt.h"
+#include "paging.h"
 #include "screen.h"
 #include "timer.h"
 
@@ -42,20 +43,34 @@ void timer_callback(uint32_t tick) {
   screen::putc('\n');
 }
 
+void timer_test() {
+  timer::RegisterCallback(timer_callback);
+}
+
+void page_fault_test() {
+  uint32_t* ptr = (uint32_t*)0xA0000000;
+  uint32_t do_page_fault = *ptr;
+  (void) do_page_fault;
+}
+
 int main() {//const multiboot* multiboot_ptr) {
-  dt::Initialize();
+  asm volatile("sti");
   screen::Clear();
+
+  dt::Initialize();
+  timer::Initialize(50);
+  paging::Initialize();
+
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
   screen::SetColor(COLOR_BLUE, COLOR_BLACK);
-  screen::puts("DMAOS...\n");
+  screen::puts("dma OS\n");
   screen::ResetColor();
 
   // vga_test();
-  //interrupt_test();
-  asm volatile("sti");
-  timer::Initialize(50);
-  timer::RegisterCallback(timer_callback);
+  // interrupt_test();
+  // timer_test();
+  page_fault_test();
 
   return 0;
 }

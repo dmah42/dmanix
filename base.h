@@ -8,4 +8,7 @@ typedef          short  int16_t;
 typedef unsigned char   uint8_t;
 typedef          char   int8_t;
 
+void panic(const char*, const  char*, uint32_t);
+#define PANIC(msg)  panic(msg, __FILE__, __LINE__)
+
 #endif  // BASE_H
