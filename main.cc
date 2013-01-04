@@ -36,6 +36,12 @@ void interrupt_test() {
   asm volatile("int $0x4");
 }
 
+void timer_callback(uint32_t tick) {
+  screen::puts("Tick: ");
+  screen::putd(tick);
+  screen::putc('\n');
+}
+
 int main() {//const multiboot* multiboot_ptr) {
   dt::Initialize();
   screen::Clear();
@@ -49,6 +55,7 @@ int main() {//const multiboot* multiboot_ptr) {
   //interrupt_test();
   asm volatile("sti");
   timer::Initialize(50);
+  timer::RegisterCallback(timer_callback);
 
   return 0;
 }
