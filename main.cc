@@ -35,8 +35,73 @@ void vga() {
 }
 
 void colors() {
-  // TODO
-  PANIC("Unimplemented!");
+  screen::puts("foreground:\n");
+  screen::SetColor(COLOR_BLACK, COLOR_BLACK);
+  screen::puts("black\t");
+  screen::SetColor(COLOR_DARK_RED, COLOR_BLACK);
+  screen::puts("dark red\t");
+  screen::SetColor(COLOR_DARK_GREEN, COLOR_BLACK);
+  screen::puts("dark green\t");
+  screen::SetColor(COLOR_DARK_YELLOW, COLOR_BLACK);
+  screen::puts("dark yellow\n");
+  screen::SetColor(COLOR_DARK_BLUE, COLOR_BLACK);
+  screen::puts("dark blue\t");
+  screen::SetColor(COLOR_DARK_MAGENTA, COLOR_BLACK);
+  screen::puts("dark magenta\t");
+  screen::SetColor(COLOR_DARK_CYAN, COLOR_BLACK);
+  screen::puts("dark cyan\t");
+  screen::SetColor(COLOR_LIGHT_GREY, COLOR_BLACK);
+  screen::puts("light grey\n");
+  screen::SetColor(COLOR_GREY, COLOR_BLACK);
+  screen::puts("grey\t");
+  screen::SetColor(COLOR_RED, COLOR_BLACK);
+  screen::puts("red\t");
+  screen::SetColor(COLOR_GREEN, COLOR_BLACK);
+  screen::puts("green\t");
+  screen::SetColor(COLOR_YELLOW, COLOR_BLACK);
+  screen::puts("yellow\n");
+  screen::SetColor(COLOR_BLUE, COLOR_BLACK);
+  screen::puts("blue\t");
+  screen::SetColor(COLOR_MAGENTA, COLOR_BLACK);
+  screen::puts("magenta\t");
+  screen::SetColor(COLOR_CYAN, COLOR_BLACK);
+  screen::puts("cyan\t");
+  screen::SetColor(COLOR_WHITE, COLOR_BLACK);
+  screen::puts("white\n");
+
+  screen::puts("background:\n");
+  screen::SetColor(COLOR_BLACK, COLOR_BLACK);
+  screen::puts("black\t");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_RED);
+  screen::puts("dark red\t");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_GREEN);
+  screen::puts("dark green\t");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_YELLOW);
+  screen::puts("dark yellow\n");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_BLUE);
+  screen::puts("dark blue\t");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_MAGENTA);
+  screen::puts("dark magenta\t");
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_CYAN);
+  screen::puts("dark cyan\t");
+  screen::SetColor(COLOR_BLACK, COLOR_LIGHT_GREY);
+  screen::puts("light grey\n");
+  screen::SetColor(COLOR_BLACK, COLOR_GREY);
+  screen::puts("grey\t");
+  screen::SetColor(COLOR_BLACK, COLOR_RED);
+  screen::puts("red\t");
+  screen::SetColor(COLOR_BLACK, COLOR_GREEN);
+  screen::puts("green\t");
+  screen::SetColor(COLOR_BLACK, COLOR_YELLOW);
+  screen::puts("yellow\n");
+  screen::SetColor(COLOR_BLACK, COLOR_BLUE);
+  screen::puts("blue\t");
+  screen::SetColor(COLOR_BLACK, COLOR_MAGENTA);
+  screen::puts("magenta\t");
+  screen::SetColor(COLOR_BLACK, COLOR_CYAN);
+  screen::puts("cyan\t");
+  screen::SetColor(COLOR_BLACK, COLOR_WHITE);
+  screen::puts("white\n");
 }
 
 void interrupt() {
