@@ -1,6 +1,8 @@
 #include "base.h"
 #include "dt.h"
+#include "fs.h"
 #include "heap.h"
+#include "initrd.h"
 #include "multiboot.h"
 #include "paging.h"
 #include "screen.h"
@@ -11,6 +13,12 @@ extern uint32_t base_address;
 
 // from boot.s
 extern "C" multiboot::Info* mbd;
+
+namespace fs {
+extern Node* root;
+}
+
+extern uint32_t base_address;
 
 namespace test {
 
@@ -155,6 +163,28 @@ namespace test {
     screen::puts("freed\n");
   }
 
+/*
+void initrd() {
+  uint32_t i = 0;
+  fs::DirEntry* node = 0;
+  while ((node = fs::root->ReadDir(i)) != 0) {
+    screen::puts("Found file: ");
+    screen::puts(node->name);
+    fs::Node* fsnode = fs::root->FindDir(node->name);
+    if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)
+      screen::puts("\t(directory)\n");
+    else {
+      screen::puts("\tcontents:\n\t\"");
+      char buf[256];
+      fsnode->Read(0, sizeof(buf), (uint8_t*) buf);
+      screen::puts(buf);
+      screen::puts("\"\n");
+    }
+    ++i;
+  }
+  screen::puts("end of initrd\n");
+}
+*/
 }  // namespace test
 
 int main() {
@@ -164,7 +194,6 @@ int main() {
   multiboot::Dump();
 
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
-
   screen::Printf("mod[0]: %x -> %x = %d bytes\n",
                  mod[0].start_address, mod[0].end_address,
                  mod[0].end_address - mod[0].start_address);
@@ -172,7 +201,8 @@ int main() {
   // Update base address so we don't trample the modules.
   base_address = mod[mbd->mods_count - 1].end_address;
 
-  //test::memory();
+  // test::memory();
+
   //  screen::puts("initializing paging\n");
   paging::Initialize();
   //  screen::puts("done\n");
@@ -188,12 +218,15 @@ int main() {
   screen::puts("NIX\n");
   screen::ResetColor();
 
+  // fs::root = initrd::Initialize(initrd_location);
+
   // test::vga();
   // test::colors();
   // test::interrupt();
   // test::timer();
   // test::page_fault();
   // test::memory();
+  // test::initrd();
 
   return 0;
 }

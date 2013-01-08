@@ -141,7 +141,9 @@ void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
+  for(;;);
   memory::set(video_memory, blank, NUM_COLS * NUM_ROWS - 1);
+  for(;;);
   cursor.Reset();
   cursor.Move();
 }

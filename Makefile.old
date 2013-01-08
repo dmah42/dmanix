@@ -1,0 +1,48 @@
+OBJDIR=obj
+
+CC = g++
+AS = nasm
+LD = ld
+
+SOURCES := $(wildcard *.cc) $(wildcard *.s)
+CC_OBJECTS = $(SOURCES:.cc=.o) 
+AS_OBJECTS = $(CC_OBJECTS:.s=.o)
+OBJECTS := $(addprefix $(OBJDIR)/,$(AS_OBJECTS))
+
+EXECUTABLE = kernel
+
+CXXFLAGS = -Wall -Werror -Wno-main -Os -nostdlib -nostdinc \
+				   -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti -m32 
+LDFLAGS = -Tlink.ld -melf_i386
+ASFLAGS = -felf
+
+$(OBJDIR)/%.o: %.cc
+	echo Compiling $@ from $<
+	$(CC) $(CXXFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: %.s
+	echo Assembling $@ from $<
+	$(AS) $(ASFLAGS) $< -o $@
+
+all: $(EXECUTABLE) initrd
+
+clean:
+	-rm -rf $(OBJDIR) $(EXECUTABLE)
+	make -C tools clean
+
+$(OBJECTS): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(EXECUTABLE): $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
+
+force_check:
+	true
+
+tool_build: force_check
+	make -C tools 
+
+initrd : initrd_index tool_build
+	tools/initrd_build $<
