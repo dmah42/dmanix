@@ -1,5 +1,16 @@
-SOURCES=base.o boot.o dt.o dt_flush.o heap.o interrupt.o io.o irq.o isr.o \
-				kalloc.o main.o paging.o screen.o timer.o
+OBJDIR=obj
+
+CC = g++
+AS = nasm
+LD = ld
+
+CC_SOURCES := $(wildcard *.cc)
+AS_SOURCES := $(wildcard *.s)
+CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
+AS_OBJECTS := $(addprefix $(OBJDIR)/,$(AS_SOURCES:.s=.o))
+OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
+
+EXECUTABLE = kernel
 
 CXXFLAGS=-Wall -Werror -Wno-main -Os \
 				 -nostdlib -nostdinc \
@@ -8,13 +19,21 @@ CXXFLAGS=-Wall -Werror -Wno-main -Os \
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
-all: $(SOURCES) link
+all: $(EXECUTABLE)
 
 clean:
-	-rm *.o kernel
+	-rm $(OBJECTS) $(EXECUTABLE)
 
-link:
-	ld $(LDFLAGS) -o kernel $(SOURCES)
+$(EXECUTABLE): $(OBJECTS)
+	$(LD) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
 
-.s.o:
-	nasm $(ASFLAGS) $<
+$(OBJECTS): | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(OBJDIR)/%.o: %.cc
+	$(CC) $(CXXFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: %.s
+	$(AS) $(ASFLAGS) $< -o $@
