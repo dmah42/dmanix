@@ -193,26 +193,25 @@ int main() {
 
   multiboot::Dump();
 
+  ASSERT(mbd->mods_count > 0);
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
-  ASSERT(mod->mods_count > 0);
-  screen::Printf("mod[0]: %x -> %x = %d bytes\n",
-                 mod[0].start_address, mod[0].end_address,
-                 mod[0].end_address - mod[0].start_address);
+  const uint32_t initrd_location = mod[0].start_address;
+  const uint32_t initrd_end = mod[0].end_address;
+  screen::Printf("initrd: %x -> %x = %d bytes\n",
+                 initrd_location, initrd_end,
+                 initrd_end - initrd_location);
 
   // Update base address so we don't trample the modules.
   base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
 
-  const uint32_t initrd_location = mod[0].start_address;
-  const uint32_t initrd_end = mod[0].end_address;
-
   //  screen::puts("initializing paging\n");
 
   paging::Initialize();
 
   asm volatile("sti");
-  //  timer::Initialize(50);
+  timer::Initialize(50);
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
