@@ -238,8 +238,8 @@ int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
 
 void Heap::Expand(uint32_t new_size) {
   PANIC("Need to expand");
-  //if (new_size <= end_address - start_address)
-  //  PANIC("Bad size");
+  if (new_size <= end_address - start_address)
+    PANIC("Bad size");
   //if ((new_size & 0xFFFFF000) != 0) {
   //  new_size &= 0xFFFFF000;
   //  new_size += 0x1000;
@@ -260,9 +260,9 @@ void Heap::Expand(uint32_t new_size) {
 
 uint32_t Heap::Contract(uint32_t new_size) {
   PANIC("Need to contract");
+  if (new_size >= end_address - start_address)
+    PANIC("Bad size");
   return end_address - start_address;
-  //if (new_size >= end_address - start_address)
-  //  PANIC("Bad size");
 
   //if (new_size & 0x1000) {
   //  new_size &= 0x1000;

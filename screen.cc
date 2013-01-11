@@ -3,6 +3,8 @@
 #include "memory.h"
 #include "screen.h"
 
+#include <stdarg.h>
+
 #define NUM_ROWS 25
 #define NUM_COLS 80
 
@@ -93,28 +95,21 @@ void puth(uint32_t hex) {
   puts("0x");
 
   uint8_t no_zeroes = 1;
-  for (int i = 28; i > 0; i -= 4) {
+  for (int i = 28; i >= 0; i -= 4) {
     uint8_t h = (hex >> i) & 0xf;
     if (h == 0 && no_zeroes != 0)
       continue;
 
     no_zeroes = 0;
     if (h >= 0xA) {
-      putc(h - 0xA + 'a');
+      putc(h - 0xA + 'A');
     } else {
       putc(h + '0');
     }
   }
-
-  uint8_t h = hex & 0xF;
-  if (h >= 0xA)
-    putc(h - 0xA + 'a');
-  else
-    putc(h + '0');
 }
 
-// TODO: signed
-void putd(uint32_t dec) {
+void putu(uint32_t dec) {
   if (dec == 0) {
     putc('0');
     return;
@@ -134,6 +129,14 @@ void putd(uint32_t dec) {
   puts(c2);
 }
 
+void putd(int32_t dec) {
+  if (dec < 0) {
+    putc('-');
+    dec = -dec;
+  }
+  putu(dec);
+}
+
 void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
@@ -141,6 +144,46 @@ void Clear() {
   memory::set(video_memory, blank, NUM_COLS * NUM_ROWS - 1);
   cursor.Reset();
   cursor.Move();
+}
+
+void Printf(const char* format, ...) {
+  va_list ap;
+  va_start(ap, format);
+
+  char c;
+  while ((c = *format++) != '\0') {
+    if (c != '%')
+      putc(c);
+    else {
+      c = *format++;
+      switch(c) {
+        case 'd':
+          putd(va_arg(ap, int32_t));
+          break;
+
+        case 'u':
+          putu(va_arg(ap, uint32_t));
+          break;
+
+        case 'x':
+          puth(va_arg(ap, uint32_t));
+          break;
+
+        case 's': {
+          const char* s = va_arg(ap, const char*);
+          if (!s)
+            s = "(null)";
+          puts(s);
+        } break;
+
+        default:
+          PANIC("Unsupported format");
+          break;
+      }
+    }
+  }
+
+  va_end(ap);
 }
 
 void ResetColor() {

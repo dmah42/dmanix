@@ -27,9 +27,11 @@ namespace screen {
 void putc(char c);
 void puts(const char* s);
 void puth(uint32_t h);
-void putd(uint32_t d);
+void putd(int32_t d);
+void putu(uint32_t u);
 
 void Clear();
+void Printf(const char* format, ...);
 
 void ResetColor();
 void SetColor(Color fore, Color back);

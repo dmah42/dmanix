@@ -10,7 +10,7 @@ namespace {
 uint32_t tick = 0;
 Callback callback = 0;
 
-void OnTick(const isr::Registers& regs) {
+void OnTick(const isr::Registers&) {
   ++tick;
   if (callback != 0)
     callback(tick);

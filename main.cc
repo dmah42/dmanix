@@ -110,9 +110,7 @@ void interrupt() {
 }
 
 void timer_callback(uint32_t tick) {
-  screen::puts("Tick: ");
-  screen::putd(tick);
-  screen::putc('\n');
+  screen::Printf("Tick: %d\n", tick);
 }
 
 void timer() {
@@ -128,40 +126,54 @@ void page_fault() {
 void memory() {
   screen::puts("memory test start\n");
   void* a = kalloc(8);
-  screen::puts("a: ");
-  screen::puth((uint32_t) a);
   void* b = kalloc(8);
-  screen::puts(", b: ");
-  screen::puth((uint32_t) b);
+  screen::Printf("a: %x, b: %x\n", a, b);
 
-  screen::puts("\nabout to free\n");
+  screen::puts("about to free\n");
   kfree(b);
   kfree(a);
   screen::puts("freed\n");
   void* d = kalloc(12);
-  screen::puts("d: ");
-  screen::puth((uint32_t) d);
+  screen::Printf("d: %x\n", d);
   kfree(d); 
+}
+
+void screen() {
+  screen::puts("hex printing: ");
+  screen::puth(0xDEADC0DE);
   screen::putc('\n');
+
+  screen::puts("int printing: ");
+  screen::putd(-42);
+  screen::putc('\n');
+
+  screen::puts("uint printing: ");
+  screen::putd(42);
+  screen::putc('\n');
+
+  screen::Printf("Printf: %x %d %u %s\n", 0xDEADC0DE, -42, 42, "done!");
+  for(;;);
 }
 
 }  // namespace test
 
-int main() {//const multiboot* multiboot_ptr) {
-  asm volatile("sti");
+int main() {
   screen::Clear();
 
   dt::Initialize();
-  timer::Initialize(50);
-  
-  // test::memory();
+  //test::memory();
 
   paging::Initialize();
 
+  asm volatile("sti");
+  timer::Initialize(50);
+  
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
   screen::SetColor(COLOR_BLUE, COLOR_BLACK);
-  screen::puts("dma OS\n");
+  screen::puts("DMA");
+  screen::SetColor(COLOR_GREEN, COLOR_BLACK);
+  screen::puts("NIX\n");
   screen::ResetColor();
 
   // test::vga();
@@ -170,6 +182,7 @@ int main() {//const multiboot* multiboot_ptr) {
   // test::timer();
   // test::page_fault();
   // test::memory();
+  test::screen();
 
   return 0;
 }

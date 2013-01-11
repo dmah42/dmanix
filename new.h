@@ -3,6 +3,8 @@
 
 #include "base.h"
 
+#include <stdlib.h>
+
 // Placement new/delete
 inline void* operator new(size_t, void* p) { return p; }
 inline void* operator new[](size_t, void* p) { return p; }
