@@ -76,7 +76,7 @@ enum Segment {
 struct GDTEntry {
   uint16_t limit_low;
   uint16_t base_low;
-  uint8_t base_mid;
+  uint8_t base_middle;
   uint8_t access_flags;
   uint8_t granularity;
   uint8_t base_high;
@@ -109,7 +109,7 @@ IDTPointer idt_pointer;
 void SetGDTGate(Segment segment, uint32_t base, uint32_t limit,
                 uint8_t access, uint8_t granularity) {
   gdt_entries[segment].base_low = (base & 0xFFFF);
-  gdt_entries[segment].base_mid = (base >> 16) & 0xFF;
+  gdt_entries[segment].base_middle = (base >> 16) & 0xFF;
   gdt_entries[segment].base_high = (base >> 24) & 0xFF;
 
   gdt_entries[segment].limit_low = (limit & 0xFFFF);
@@ -196,8 +196,7 @@ void InitIDT() {
   idt_pointer.limit = (sizeof(IDTEntry) * sizeof(idt_entries)) - 1;
   idt_pointer.base = (uint32_t)&idt_entries;
 
-  memory::set((uint8_t*)idt_entries, (uint8_t)0,
-              sizeof(IDTEntry) * sizeof(idt_entries));
+  memory::set(idt_entries, 0, sizeof(IDTEntry) * sizeof(idt_entries));
 
   // Remap IRQ table to avoid conflicts
   RemapPIC();

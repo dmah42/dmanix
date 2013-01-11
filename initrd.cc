@@ -10,14 +10,17 @@
 namespace initrd {
 namespace {
 
+const char* DEV = "dev";
+
 Header *header;
 FileHeader *file_headers;
 
 fs::Node* root;
 fs::Node* dev;
 
-// TODO: array type
+// TODO: dynamic array type
 fs::Node* nodes;
+uint32_t num_nodes;
 
 fs::DirEntry curr_dir;
 
@@ -33,21 +36,15 @@ uint32_t Read(fs::Node *node, uint32_t offset, uint32_t size, uint8_t* buffer) {
 
 fs::DirEntry* ReadDir(fs::Node* node, uint32_t index) {
   if (node == root && index == 0) {
-    memory::copy(curr_dir.name, "dev", 3);
-    curr_dir.name[3] = '\0';
+    string::copy(curr_dir.name, DEV);
     curr_dir.inode = 0;
     return &curr_dir;
   }
 
   index -= 1;
-  if (index >= header->num_files)
+  if (index >= num_nodes)
     return 0;
-  // TODO: strncpy
-  uint32_t name_len = string::length(nodes[index].name);
-  if (name_len > sizeof(curr_dir.name) - 1)
-    PANIC("name too long");
-  memory::copy(curr_dir.name, nodes[index].name, name_len); 
-  curr_dir.name[name_len] = '\0';
+  string::copy(curr_dir.name, nodes[index].name); 
   curr_dir.inode = nodes[index].inode;
   return &curr_dir;
 }
@@ -55,7 +52,7 @@ fs::DirEntry* ReadDir(fs::Node* node, uint32_t index) {
 fs::Node* FindDir(fs::Node* node, const char* name) {
   if (node == root && string::compare(name, "dev"))
     return dev;
-  for (uint32_t i = 0; i < header->num_files; ++i) {
+  for (uint32_t i = 0; i < num_nodes; ++i) {
     if (string::compare(name, nodes[i].name))
       return &nodes[i];
   }
@@ -65,46 +62,47 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
 }  // namespace
 
 fs::Node* Initialize(uint32_t location) {
-  screen::puts("Initializing initrd @ ");
+  screen::puts("  initrd @ ");
   screen::puth(location);
   screen::putc('\n');
   // TODO: Node ctor should take name/type
-  root = new (kalloc(sizeof(fs::Node))) fs::Node();
-  memory::copy(root->name, "initrd", 6);
+  //root = new (kalloc(sizeof(fs::Node))) fs::Node();
+  root = (fs::Node*) kalloc(sizeof(fs::Node));
+  string::copy(root->name, "initrd");
+  root->perm = root->uid = root->gid = root->inode = root->length = 0;
   root->flags = fs::FLAG_DIRECTORY;
+  root->read = 0; root->write = 0; root->open = 0; root->close = 0;
   root->readdir = ReadDir;
   root->finddir = FindDir;
+  root->link = 0;
+  root->impl = 0;
 
-  dev = new (kalloc(sizeof(fs::Node))) fs::Node();
-  memory::copy(root->name, "dev", 3);
+  //dev = new (kalloc(sizeof(fs::Node))) fs::Node();
+  dev = (fs::Node*) kalloc(sizeof(fs::Node));
+  string::copy(dev->name, DEV);
+  dev->perm = dev->uid = dev->gid = dev->inode = dev->length = 0;
   dev->flags = fs::FLAG_DIRECTORY;
+  dev->read = 0; dev->write = 0; dev->open = 0; dev->close = 0;
   dev->readdir = ReadDir;
   dev->finddir = FindDir;
+  dev->link = 0;
+  dev->impl = 0;
 
   // Add the files
   header = (Header*) location;
   file_headers = (FileHeader*)(location + sizeof(Header));
 
-  screen::puts("Dumping location...\n");
-  for (int i = 0; i < 32; ++i) {
-    screen::puth(*(((uint8_t*)location) + i));
-    screen::putc(' ');
-  }
-  screen::putc('\n');
-
-  uint32_t num_nodes = header->num_files;
+  num_nodes = header->num_files;
+  screen::puts("  num_files: ");
   screen::putd(num_nodes);
-  screen::puts(" files found\n");
-  nodes = new (kalloc(sizeof(fs::Node) * num_nodes)) fs::Node[num_nodes]();
+  screen::putc('\n');
+  //nodes = new (kalloc(sizeof(fs::Node) * num_nodes)) fs::Node[num_nodes]();
+  nodes = (fs::Node*) kalloc(sizeof(fs::Node) * num_nodes);
   for (uint32_t i = 0; i < num_nodes; ++i) {
     file_headers[i].offset_ += location + header->content_offset;
 
-    // TODO: string::copy
-    uint32_t name_len = string::length(file_headers[i].name_);
-    if (name_len > sizeof(nodes[i].name) - 1)
-      PANIC("name too long");
-    memory::copy(nodes[i].name, file_headers[i].name_, name_len);
-    screen::puts("  ");
+    string::copy(nodes[i].name, file_headers[i].name_);
+    screen::puts("    ");
     screen::puts(file_headers[i].name_);
     screen::puts(" @ ");
     screen::puth(file_headers[i].offset_);
@@ -114,7 +112,6 @@ fs::Node* Initialize(uint32_t location) {
     nodes[i].flags = fs::FLAG_FILE;
     nodes[i].read = Read;
   }
-  screen::puts("done\n");
   return root;
 }
 

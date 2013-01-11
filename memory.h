@@ -5,19 +5,14 @@
 
 namespace memory {
 
-template<typename T>
-  T* copy(T* dest, const T* src, uint32_t n) {
-    for (uint32_t i = 0; i < n; ++i)
-      dest[i] = src[i];
-    return dest;
-  }
+void* copy(void* dest, const void* src, uint32_t n);
+void* set(void* dest, uint8_t c, uint32_t n);
 
-template<typename T>
-  T* set(T* dest, T c, uint32_t n) {
-    for (uint32_t i = 0; i < n; ++i)
-      dest[i] = c;
-    return dest;
-  }
+uint8_t* copy(uint8_t* dest, const uint8_t* src, uint32_t n);
+uint8_t* set(uint8_t* dest, uint8_t c, uint32_t n);
+
+uint16_t* copy(uint16_t* dest, const uint16_t* src, uint32_t n);
+uint16_t* set(uint16_t* dest, uint16_t c, uint32_t n);
 
 }  // namespace memory
 

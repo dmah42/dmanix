@@ -94,13 +94,8 @@ void puts(const char* s) {
 void puth(uint32_t hex) {
   puts("0x");
 
-  uint8_t no_zeroes = 1;
-  for (int i = 28; i >= 0; i -= 4) {
-    uint8_t h = (hex >> i) & 0xf;
-    if (h == 0 && no_zeroes != 0)
-      continue;
-
-    no_zeroes = 0;
+  for (int i = 28; i > 0; i -= 4) {
+    const uint8_t h = (hex >> i) & 0xf;
     if (h >= 0xA) {
       putc(h - 0xA + 'A');
     } else {
@@ -141,9 +136,7 @@ void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
-  for(;;);
   memory::set(video_memory, blank, NUM_COLS * NUM_ROWS - 1);
-  for(;;);
   cursor.Reset();
   cursor.Move();
 }

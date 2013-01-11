@@ -4,27 +4,28 @@ namespace string {
 
 uint32_t length(const char* s) {
   const char* ps = s;
-  while (ps != '\0') {
-    ++ps;
-  }
+  while (*ps++ != '\0') { }
 
   return ps - s;
 }
 
 bool compare(const char* a, const char* b) {
-  const char* pa = a;
-  const char* pb = b;
-
-  while (pa != '\0' && pb != '\0') {
-    if (*pa != *pb)
+  ASSERT(a != 0);
+  ASSERT(b != 0)
+  while (*a != '\0' && *b != '\0') {
+    if (*a++ != *b++)
       return false;
-    ++pa; ++pb;
   }
 
-  if (pa != '\0' || pb != '\0')
-    return false;
+  return (*a == '\0' && *b == '\0');
+}
 
-  return true;
+char* copy(char* dest, const char* source) {
+  ASSERT(dest != 0);
+  ASSERT(source != 0);
+  while (*source != '\0')
+    *dest++ = *source++;
+  return dest;
 }
 
 }  // namespace string

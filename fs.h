@@ -43,7 +43,7 @@ struct Node {
   finddir_func finddir;
 
   // For mountpoints and symlinks
-  Node* ptr;
+  Node* link;
 
   Node();
   uint32_t Read(uint32_t offset, uint32_t size, uint8_t* buffer);

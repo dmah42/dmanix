@@ -6,6 +6,7 @@
 extern uint32_t end;
 uint32_t base_address = (uint32_t)&end;
 
+// from paging.cc
 extern Heap* kheap;
 
 namespace {
@@ -17,7 +18,7 @@ void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
       *phys = paging::GetPhysicalAddress(addr);
     return (void*) addr;
   } else {
-    if (page_align && (base_address & 0xFFFFF000)) {
+    if (page_align && (base_address & 0xFFFFF000) != 0) {
       base_address &= 0xFFFFF000;
       base_address += 0x1000;
     }

@@ -18,6 +18,7 @@ namespace fs {
 extern Node* root;
 }
 
+// from kalloc.cc
 extern uint32_t base_address;
 
 namespace test {
@@ -163,28 +164,27 @@ namespace test {
     screen::puts("freed\n");
   }
 
-/*
-void initrd() {
-  uint32_t i = 0;
-  fs::DirEntry* node = 0;
-  while ((node = fs::root->ReadDir(i)) != 0) {
-    screen::puts("Found file: ");
-    screen::puts(node->name);
-    fs::Node* fsnode = fs::root->FindDir(node->name);
-    if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)
-      screen::puts("\t(directory)\n");
-    else {
-      screen::puts("\tcontents:\n\t\"");
-      char buf[256];
-      fsnode->Read(0, sizeof(buf), (uint8_t*) buf);
-      screen::puts(buf);
-      screen::puts("\"\n");
+  void initrd() {
+    uint32_t i = 0;
+    fs::DirEntry* node = 0;
+    while ((node = fs::root->ReadDir(i)) != 0) {
+      screen::puts("Found file: ");
+      screen::puts(node->name);
+      fs::Node* fsnode = fs::root->FindDir(node->name);
+      if ((fsnode->flags & 0x7) == fs::FLAG_DIRECTORY)
+        screen::puts("\t(directory)\n");
+      else {
+        screen::puts("\tcontents:\n\t\"");
+        char buf[256];
+        fsnode->Read(0, sizeof(buf), (uint8_t*) buf);
+        screen::puts(buf);
+        screen::puts("\"\n");
+      }
+      ++i;
     }
-    ++i;
+    screen::puts("end of initrd\n");
   }
-  screen::puts("end of initrd\n");
-}
-*/
+
 }  // namespace test
 
 int main() {
@@ -194,6 +194,7 @@ int main() {
   multiboot::Dump();
 
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
+  ASSERT(mod->mods_count > 0);
   screen::Printf("mod[0]: %x -> %x = %d bytes\n",
                  mod[0].start_address, mod[0].end_address,
                  mod[0].end_address - mod[0].start_address);
@@ -203,11 +204,14 @@ int main() {
 
   // test::memory();
 
-  //  screen::puts("initializing paging\n");
-  paging::Initialize();
-  //  screen::puts("done\n");
+  const uint32_t initrd_location = mod[0].start_address;
+  const uint32_t initrd_end = mod[0].end_address;
 
-  //  asm volatile("sti");
+  //  screen::puts("initializing paging\n");
+
+  paging::Initialize();
+
+  asm volatile("sti");
   //  timer::Initialize(50);
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
@@ -218,7 +222,9 @@ int main() {
   screen::puts("NIX\n");
   screen::ResetColor();
 
-  // fs::root = initrd::Initialize(initrd_location);
+  screen::puts("initializing inird\n");
+  fs::root = initrd::Initialize(initrd_location);
+  screen::puts("done\n");
 
   // test::vga();
   // test::colors();
@@ -226,7 +232,7 @@ int main() {
   // test::timer();
   // test::page_fault();
   // test::memory();
-  // test::initrd();
+  test::initrd();
 
   return 0;
 }

@@ -10,17 +10,40 @@
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
                    bool supervisor, bool readonly) {
-  if (start%0x1000 != 0)
-    PANIC("start not page aligned");
-  if (end_addr%0x1000 != 0)
-    PANIC("end not page aligned");
+  ASSERT(start%0x1000 == 0);
+  ASSERT(end_addr%0x1000 == 0);
 
-  return new(kalloc(sizeof(Heap))) Heap(start, end_addr, max, supervisor, readonly);
+  void* heap_mem = kalloc(sizeof(Heap));
+  Heap* heap = (Heap*) heap_mem;
+
+  //return new(kalloc(sizeof(Heap))) Heap(start, end_addr, max, supervisor, readonly);
+  
+  heap->index = OrderedList<Header*>::Create((void*) start,
+                                             HEAP_INDEX_SIZE,
+                                             HeaderLessThan);
+  // Allow for index array.
+  start += sizeof(Header*) * HEAP_INDEX_SIZE;
+  if ((start & 0xFFFFF000) != 0) {
+    start &= 0xFFFFF000;
+    start += 0x1000;
+  }
+  heap->start_address = start;
+  heap->end_address = end_addr;
+  heap->max_address = max;
+  heap->supervisor = supervisor;
+  heap->readonly = readonly;
+
+  Header* hole = (Header*) start;
+  hole->size = end_addr - start;
+  hole->magic = HEAP_MAGIC;
+  hole->is_hole = 1;
+  heap->index.Insert(hole);
+  return heap;
 }
 
 // static
 void Heap::Destroy(Heap* heap) {
-  heap->~Heap();
+  //heap->~Heap();
   kfree(heap);
 }
 
@@ -37,7 +60,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
     iterator = 0;
     int32_t idx = -1; uint32_t value = 0x0;
-    while (iterator < index.size()) {
+    while (iterator < index.get_size()) {
       uint32_t tmp = (uint32_t) index.Lookup(iterator);
       if (tmp > value) {
         value = tmp;
@@ -154,10 +177,10 @@ void Heap::Free(void* p) {
     test_footer = (Footer*)((uint32_t)test_header + test_header->size - sizeof(Footer));
     footer = test_footer;
     uint32_t iterator = 0;
-    while ((iterator < index.size()) && index.Lookup(iterator) != test_header)
+    while ((iterator < index.get_size()) && index.Lookup(iterator) != test_header)
       ++iterator;
 
-    if (iterator >= index.size()) PANIC("Failed to find block");
+    ASSERT(iterator < index.get_size());
 
     index.Remove(iterator);
   }
@@ -190,33 +213,33 @@ bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
   return a->size < b->size;
 }
 
-Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max, bool supervisor, bool readonly)
-    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
-      end_address(end_addr),
-      max_address(max),
-      supervisor(supervisor),
-      readonly(readonly) {
-  // Allow for index array.
-  start += sizeof(Header*) * HEAP_INDEX_SIZE;
-  if ((start & 0xFFFFF000) != 0) {
-    start &= 0xFFFFF000;
-    start += 0x1000;
-  }
-  start_address = start;
-
-  Header* hole = (Header*) start;
-  hole->size = end_addr - start;
-  hole->magic = HEAP_MAGIC;
-  hole->is_hole = 1;
-  index.Insert(hole);
-}
-
-Heap::~Heap() {
-}
+//Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max, bool supervisor, bool readonly)
+//    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
+//      end_address(end_addr),
+//      max_address(max),
+//      supervisor(supervisor),
+//      readonly(readonly) {
+//  // Allow for index array.
+//  start += sizeof(Header*) * HEAP_INDEX_SIZE;
+//  if ((start & 0xFFFFF000) != 0) {
+//    start &= 0xFFFFF000;
+//    start += 0x1000;
+//  }
+//  start_address = start;
+//
+//  Header* hole = (Header*) start;
+//  hole->size = end_addr - start;
+//  hole->magic = HEAP_MAGIC;
+//  hole->is_hole = 1;
+//  index.Insert(hole);
+//}
+//
+//Heap::~Heap() {
+//}
 
 int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
   uint32_t iterator = 0;
-  while (iterator < index.size()) {
+  while (iterator < index.get_size()) {
     Header* header = index.Lookup(iterator);
     if (page_align) {
       uint32_t location = (uint32_t) header;
@@ -231,9 +254,7 @@ int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
     ++iterator;
   }
 
-  if (iterator != index.size())
-    return iterator;
-  return -1;
+  return iterator == index.get_size() ? -1 : iterator;
 }
 
 void Heap::Expand(uint32_t new_size) {

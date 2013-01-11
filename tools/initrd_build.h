@@ -1,6 +1,8 @@
 #ifndef INITRD_BUILD_H
 #define INITRD_BUILD_H
 
+namespace initrd {
+
 struct Header {
 #ifdef TOOL_BUILD
   Header(uint32_t num_files, uint32_t content_offset)
@@ -25,5 +27,7 @@ struct FileHeader {
   uint32_t offset_;
   char name_[64];
 };
+
+}  // namespace initrd
 
 #endif  // INITRD_BUILD_H

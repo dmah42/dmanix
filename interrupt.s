@@ -1,18 +1,22 @@
-%macro ISR_NOERRCODE 1  ; define a macro taking one parameter
+; Interrupt service routine wrappers.
+
+; Stub for ISR which adds dummy error code byte
+%macro ISR_NOERRCODE 1
   global isr%1
   isr%1:
     cli
-    push byte 0
-    push byte %1
-    jmp isr_common_stub
+    push  byte 0
+    push  byte %1
+    jmp   isr_common_stub
 %endmacro
 
+; Stub for ISR that adds its own error code
 %macro ISR_ERRCODE 1
   global isr%1
   isr%1:
     cli
-    push byte %1
-    jmp isr_common_stub
+    push  byte %1
+    jmp   isr_common_stub
 %endmacro
 
 ISR_NOERRCODE 0
@@ -53,26 +57,26 @@ extern isr_handler
 ; Common ISR stub. Save processor state, set up for kernel mode, call the
 ; C-level fault handler, and restore state.
 isr_common_stub:
-  pusha           ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
+  pusha             ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
 
-  mov ax, ds
-  push eax        ; save the data segment descriptor
+  mov  ax, ds
+  push eax          ; save the data segment descriptor
 
-  mov ax, 0x10    ; load the kernel data segment descriptor
-  mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
+  mov   ax, 0x10    ; load the kernel data segment descriptor
+  mov   ds, ax
+  mov   es, ax
+  mov   fs, ax
+  mov   gs, ax
 
-  call isr_handler
+  call  isr_handler
 
-  pop ebx         ; reload the original data segment descriptor
-  mov ds, bx
-  mov es, bx
-  mov fs, bx
-  mov gs, bx
+  pop   ebx         ; reload the original data segment descriptor
+  mov   ds, bx
+  mov   es, bx
+  mov   fs, bx
+  mov   gs, bx
 
-  popa            ; Pops edi,esi, ...
-  add esp, 8      ; Clean up the error code and ISR number
+  popa              ; Pops edi,esi, ...
+  add   esp, 8      ; Clean up the error code and ISR number
   sti
-  iret            ; Pops five things: cs, eip, eflags, ss, and esp
+  iret              ; Pops five things: cs, eip, eflags, ss, and esp
