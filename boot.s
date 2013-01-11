@@ -1,34 +1,67 @@
-MBOOT_PAGE_ALIGN    equ 1 << 0  ; load kernel and modules on page boundary
-MBOOT_MEM_INFO      equ 1 << 1  ; provide kernel with memory info
-MBOOT_HEADER_MAGIC  equ 0x1BADB002
-MBOOT_HEADER_FLAGS  equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
-MBOOT_CHECKSUM      equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
+global start
+global mbmagic
+global mbd
 
-[BITS 32]
+extern main
 
-[GLOBAL mboot]      ; mboot accessible from C
-[EXTERN code]       ; start of .text
-[EXTERN bss]        ; start of .bss
-[EXTERN end]        ; end of loadable sections
+extern start_ctors
+extern end_ctors
+extern start_dtors
+extern end_dtors
 
-mboot:
-  dd MBOOT_HEADER_MAGIC
-  dd MBOOT_HEADER_FLAGS
+; set up multiboot header
+MBOOT_PAGE_ALIGN  equ 1 << 0  ; load kernel and modules on page boundary
+MBOOT_MEM_INFO    equ 1 << 1  ; provide kernel with memory info
+MBOOT_MAGIC       equ 0x1BADB002
+MBOOT_FLAGS       equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
+MBOOT_CHECKSUM    equ -(MBOOT_MAGIC + MBOOT_FLAGS)
+
+section .text
+
+align 4
+  dd MBOOT_MAGIC
+  dd MBOOT_FLAGS
   dd MBOOT_CHECKSUM
 
-  dd mboot
-  dd code
-  dd bss
-  dd end
-  dd start
-
-[GLOBAL start]      ; kernel entry point
-[EXTERN main]       ; entry point of C++ code
+; reserve initial stack space
+STACKSIZE equ 0x4000  ; 16kb
 
 start:
-  push ebx          ; load multiboot header location
+  mov   esp, stack + STACKSIZE
+  mov   [mbmagic], eax
+  mov   [mbd], ebx
 
-  ; execute the kernel
-  cli               ; disable interrupts
+  ; call constructors
+  mov   ebx, start_ctors
+  jmp   .ctors_until_end
+.call_ctor:
+  call  [ebx]
+  add   ebx, 4
+.ctors_until_end:
+  cmp   ebx, end_ctors
+  jb    .call_ctor
+
+  ; call kernel
   call main
-  jmp $             ; infinite loop
+
+  ; call destructors in reverse order
+  mov   ebx, end_dtors
+  jmp   .dtors_until_end
+.call_dtor:
+  sub   ebx, 4
+  call  [ebx]
+.dtors_until_end:
+  cmp   ebx, start_dtors
+  ja    .call_dtor
+
+  cli
+.hang:
+  hlt
+  jmp   .hang
+
+section .bss
+
+align 4
+mbmagic:  resd 1
+mbd:      resd 1
+stack:    resb STACKSIZE

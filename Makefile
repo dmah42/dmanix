@@ -15,7 +15,7 @@ EXECUTABLE = kernel
 CXXFLAGS=-Wall -Werror -Wno-main -Os \
 				 -nostdlib -nostdinc \
 				 -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
-				 -m32 
+				 -m32
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
