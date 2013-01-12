@@ -11,6 +11,9 @@
 // from kalloc.cc
 extern uint32_t base_address;
 
+// from process.s
+extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
+
 #define KHEAP_START         0xC0000000
 #define KHEAP_INITIAL_SIZE  0x100000
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
@@ -19,7 +22,6 @@ extern uint32_t base_address;
 Heap* kheap = NULL;
 
 namespace paging {
-namespace {
 
 struct Page {
   uint32_t present  : 1;
@@ -35,6 +37,9 @@ struct Table {
   Table() {
     memory::set((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
   }
+  // TODO: copy ctor
+  Table* Clone(uint32_t* physical);
+
   Page pages[1024];
 };
 
@@ -54,11 +59,13 @@ struct Directory {
   uint32_t physicalAddress;
 };
 
+Directory* current_directory = NULL;
+Directory* kernel_directory = NULL;
+
+namespace {
+
 // TODO: Remove assumption of 16Mb
 const uint32_t mem_end = 0x1000000;
-
-Directory* kernel_directory = NULL;
-Directory* current_directory = NULL;
 
 // bitset of used/free frames
 // TODO: class
@@ -106,6 +113,43 @@ uint32_t FindFrame() {
   return (uint32_t) -1;
 }
 
+void SwitchPageDirectory(Directory* dir) {
+  current_directory = dir;
+  asm volatile("mov %0, %%cr3" : : "r" (dir->physicalAddress));
+  uint32_t cr0;
+  asm volatile("mov %%cr0, %0" : "=r" (cr0));
+  cr0 |= 0x80000000;
+  asm volatile("mov %0, %%cr0" : : "r" (cr0));
+}
+
+void PageFault(const isr::Registers& regs) {
+  uint32_t faulting_address;
+  asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
+
+  bool present = !(regs.err_code & 0x1);
+  bool rw = regs.err_code & 0x2;
+  bool user = regs.err_code & 0x4;
+  bool reserved = regs.err_code & 0x8;
+  bool instruction = regs.err_code & 0x10;
+
+  // Output error message to screen
+  screen::SetColor(COLOR_BLACK, COLOR_DARK_RED);
+  screen::puts("PAGE FAULT");
+  screen::SetColor(COLOR_WHITE, COLOR_BLACK);
+  screen::puts(" (");
+  if (present) screen::puts("present ");
+  if (rw) screen::puts("read-only ");
+  if (user) screen::puts("user-mode ");
+  if (reserved) screen::puts("reserved ");
+  if (instruction) screen::puts("instruction ");
+  screen::puts(") at ");
+  screen::puth(faulting_address);
+  screen::putc('\n');
+  PANIC("Page fault"); 
+}
+
+}  // namespace
+
 void AllocFrame(Page* page, bool is_kernel, bool is_writeable) {
   // Check if already allocated
   if (page->frame != 0)
@@ -128,15 +172,6 @@ void FreeFrame(Page* page) {
 
   ClearFrame(frame);
   page->frame = 0;
-}
-
-void SwitchPageDirectory(Directory* dir) {
-  current_directory = dir;
-  asm volatile("mov %0, %%cr3" : : "r" (&dir->physical));
-  uint32_t cr0;
-  asm volatile("mov %%cr0, %0" : "=r" (cr0));
-  cr0 |= 0x80000000;
-  asm volatile("mov %0, %%cr0" : : "r" (cr0));
 }
 
 Page* GetPage(uint32_t address, bool make, Directory* dir) {
@@ -189,7 +224,7 @@ void Initialize() {
   //kernel_directory = new (kalloc_pa(sizeof(Directory))) Directory();
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
   kernel_directory = new (kernel_directory_mem) Directory();
-  current_directory = kernel_directory;
+  kernel_directory->physicalAddress = (uint32_t) kernel_directory->physical;
 
   // Map pages in the kernel heap area.
   // Call GetPage but not AllocFrame. Tables can be created where necessary and
@@ -216,6 +251,9 @@ void Initialize() {
 
   // Create the kernel heap
   kheap = Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
+
+  current_directory = kernel_directory->Clone();
+  SwitchPageDirectory(current_directory);
 }
 
 void Shutdown() {
@@ -230,6 +268,56 @@ void Shutdown() {
 uint32_t GetPhysicalAddress(uint32_t address) {
   Page* page = GetPage(address, false, kernel_directory);
   return page->frame * 0x1000 + (address & 0xFFF);
+}
+
+Directory* Directory::Clone() {
+  uint32_t phys;
+  Directory* dir = (Directory*) kalloc_pa(sizeof(Directory), &phys);
+  memory::set(dir, 0, sizeof(Directory));
+
+  // Get offset of physical table
+  uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
+
+  dir->physicalAddress = phys + offset;
+
+  // Copy the page table
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (tables[i] == 0)
+      continue;
+    if (kernel_directory->tables[i] == tables[i]) {
+      // In the kernel - use the same pointer
+      dir->tables[i] = tables[i];
+      dir->physical[i] = physical[i];
+    } else {
+      // Copy the table
+      uint32_t phys;
+      dir->tables[i] = tables[i]->Clone(&phys);
+      dir->physical[i] = phys | 0x7; // TODO: better flags
+    }
+  }
+
+  return dir;
+}
+
+Table* Table::Clone(uint32_t* physical) {
+  Table* table = (Table*) kalloc_pa(sizeof(Table), physical);
+  memory::set(table, 0, sizeof(Table));
+
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (pages[i].frame == 0)
+      continue;
+    AllocFrame(&table->pages[i], false, false);
+    // TODO: copy ctor
+    table->pages[i].present = pages[i].present;
+    table->pages[i].rw = pages[i].rw;
+    table->pages[i].user = pages[i].user;
+    table->pages[i].accessed = pages[i].accessed;
+    table->pages[i].dirty = pages[i].dirty;
+    // Copy the data across. See process.s.
+    copy_page_physical(table->pages[i].frame * 0x1000,
+                       pages[i].frame * 0x1000);
+  }
+  return table;
 }
 
 }  // namespace paging

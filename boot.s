@@ -1,6 +1,7 @@
 global start
 global mbmagic
 global mbd
+global stack
 
 extern main
 
@@ -30,6 +31,7 @@ start:
   mov   esp, stack + STACKSIZE
   mov   [mbmagic], eax
   mov   [mbd], ebx
+  mov   [stack], esp
 
   ; call constructors
   mov   ebx, start_ctors

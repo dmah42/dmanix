@@ -6,6 +6,17 @@
 #define HEAP_MAGIC          0x1FF
 #define HEAP_MIN_SIZE       0x70000
 
+namespace paging {
+struct Directory;
+struct Page;
+
+extern Directory* kernel_directory;
+
+void AllocFrame(Page* page, bool is_kernel, bool is_writeable);
+void FreeFrame(Page* page);
+Page* GetPage(uint32_t address, bool make, Directory* dir);
+}  // namespace paging
+
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
                    bool supervisor, bool readonly) {
@@ -269,47 +280,45 @@ int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
 }
 
 void Heap::Expand(uint32_t new_size) {
-  PANIC("Need to expand");
   if (new_size <= end_address - start_address)
     PANIC("Bad size");
-  //if ((new_size & 0xFFFFF000) != 0) {
-  //  new_size &= 0xFFFFF000;
-  //  new_size += 0x1000;
-  //}
+  if ((new_size & 0xFFFFF000) != 0) {
+    new_size &= 0xFFFFF000;
+    new_size += 0x1000;
+  }
 
-  //if (start_address + new_size > max_address)
-  //  PANIC("Over capacity");
+  if (start_address + new_size > max_address)
+    PANIC("Over capacity");
 
-  //uint32_t old_size = end_address - start_address;
-  //uint32_t i = old_size;
-  //while (i < new_size) {
-  //  AllocFrame(GetPage(start_address + i, true, kernel_directory), supervisor,
-  //             readonly);
-  //  i += 0x1000;
-  //}
-  //end_address = start_address + new_size;
+  uint32_t old_size = end_address - start_address;
+  uint32_t i = old_size;
+  while (i < new_size) {
+    paging::AllocFrame(
+        paging::GetPage(start_address + i, true, paging::kernel_directory),
+        supervisor, readonly);
+    i += 0x1000;
+  }
+  end_address = start_address + new_size;
 }
 
 uint32_t Heap::Contract(uint32_t new_size) {
-  PANIC("Need to contract");
   if (new_size >= end_address - start_address)
     PANIC("Bad size");
-  return end_address - start_address;
 
-  //if (new_size & 0x1000) {
-  //  new_size &= 0x1000;
-  //  new_size += 0x1000;
-  //}
+  if (new_size & 0x1000) {
+    new_size &= 0x1000;
+    new_size += 0x1000;
+  }
 
-  //if (new_size < HEAP_MIN_SIZE)
-  //  new_size = HEAP_MIN_SIZE;
-  //uint32_t old_size = end_address - start_address;
-  //uint32_t i = old_size - 0x1000;
-  //while (new_size < i) {
-  //  FreeFrame(GetPage(start_address + i, false, kernel_directory));
-  //  i -= 0x1000;
-  //}
-  //end_address = start_address + new_size;
-  //return new_size;
+  if (new_size < HEAP_MIN_SIZE)
+    new_size = HEAP_MIN_SIZE;
+  uint32_t old_size = end_address - start_address;
+  uint32_t i = old_size - 0x1000;
+  while (new_size < i) {
+    FreeFrame(GetPage(start_address + i, false, paging::kernel_directory));
+    i -= 0x1000;
+  }
+  end_address = start_address + new_size;
+  return new_size;
 }
 

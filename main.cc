@@ -6,6 +6,7 @@
 #include "memory/paging.h"
 #include "multiboot.h"
 #include "screen.h"
+#include "task.h"
 #include "timer.h"
 
 // from kalloc.cc
@@ -165,6 +166,7 @@ namespace test {
   }
 
   void initrd() {
+    asm volatile("cli");
     uint32_t i = 0;
     fs::DirEntry* node = NULL;
     while ((node = fs::root->ReadDir(i)) != NULL) {
@@ -182,6 +184,7 @@ namespace test {
       ++i;
     }
     screen::puts("end of initrd\n");
+    asm volatile("sti");
   }
 
 }  // namespace test
@@ -190,7 +193,7 @@ int main() {
   dt::Initialize();
   screen::Clear();
 
-  multiboot::Dump();
+  //multiboot::Dump();
 
   ASSERT(mbd->mods_count > 0);
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
@@ -205,6 +208,8 @@ int main() {
   asm volatile("sti");
   timer::Initialize(50);
 
+  task::Initialize();
+
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
   screen::SetColor(COLOR_BLUE, COLOR_BLACK);
@@ -216,6 +221,12 @@ int main() {
   screen::puts("initializing initrd\n");
   fs::root = initrd::Initialize(mod[0]);
   screen::puts("done\n");
+
+  // create a new process in a new address space which is a clone
+  uint32_t ret = task::Fork();
+  screen::Printf("Fork returned %x and getpid() returned %x\n",
+                 ret, task::PID());
+  screen::puts("=========================================\n");
 
   // test::vga();
   // test::colors();
