@@ -10,19 +10,23 @@ CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 AS_OBJECTS := $(addprefix $(OBJDIR)/,$(AS_SOURCES:.s=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
 
-EXECUTABLE = kernel
+INITRD_BUILD = tools/initrd_build
 
-CXXFLAGS = -Wall -Werror -Wextra -Os \
+EXECUTABLE = kernel
+MODULES = initrd
+
+CXXFLAGS = -Wall -Werror -Wextra -O0 \
 					 -nostdlib -nodefaultlibs \
 					 -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
-				   -m32
+				   -m32 -g
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
-all: $(EXECUTABLE)
+all: $(EXECUTABLE) $(MODULES)
 
 clean:
 	-rm $(OBJECTS) $(EXECUTABLE)
+	@make -C tools clean
 
 $(EXECUTABLE): $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
@@ -30,10 +34,16 @@ $(EXECUTABLE): $(OBJECTS)
 $(OBJECTS): | $(OBJDIR)
 
 $(OBJDIR):
-	mkdir -p $(OBJDIR)
+	@mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: %.cc
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: %.s
 	$(AS) $(ASFLAGS) $< -o $@
+
+initrd: $(INITRD_BUILD) initrd_index
+	$(INITRD_BUILD) initrd_index
+
+$(INITRD_BUILD):
+	@make -C tools initrd_build

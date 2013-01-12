@@ -32,15 +32,15 @@ struct Page {
 
 struct Table {
 //  Table() {
-//    memory::set((uint8_t*)pages, 0, sizeof(Page) * sizeof(pages));
+//    memory::set((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
 //  }
   Page pages[1024];
 };
 
 struct Directory {
 //  Directory() : physicalAddress(0) {
-//    memory::set((uint8_t*)tables, 0, sizeof(Table*) * sizeof(tables));
-//    memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * sizeof(physical));
+//    memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+//    memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
 //  }
 //  ~Directory() {
 //    for (uint32_t i = 0; i < 1024; ++i) {
@@ -217,7 +217,6 @@ void Initialize() {
 
   // Create the kernel heap
   kheap = Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
-  screen::puts("  kheap created\n");
 }
 
 uint32_t GetPhysicalAddress(uint32_t address) {

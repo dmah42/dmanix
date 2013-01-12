@@ -193,10 +193,10 @@ void SetPICGates() {
 }
 
 void InitIDT() {
-  idt_pointer.limit = (sizeof(IDTEntry) * sizeof(idt_entries)) - 1;
+  idt_pointer.limit = (sizeof(IDTEntry) * ARRAY_SIZE(idt_entries)) - 1;
   idt_pointer.base = (uint32_t)&idt_entries;
 
-  memory::set(idt_entries, 0, sizeof(IDTEntry) * sizeof(idt_entries));
+  memory::set(idt_entries, 0, sizeof(IDTEntry) * ARRAY_SIZE(idt_entries));
 
   // Remap IRQ table to avoid conflicts
   RemapPIC();

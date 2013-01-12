@@ -15,17 +15,17 @@ struct Header {
 struct FileHeader {
 #ifdef TOOL_BUILD
   FileHeader(const std::string& name, uint32_t size, uint32_t offset)
-      : size_(size),
-        offset_(offset) {
-    if (name.length() > sizeof(name_))
+      : size(size),
+        offset(offset) {
+    if (name.length() > sizeof(this->name))
       std::cout << "WARNING: " << name << " is being truncated.\n";
-    strncpy(name_, name.c_str(), sizeof(name_));
+    strncpy(this->name, name.c_str(), sizeof(this->name));
   }
 #endif  // TOOL_BUILD
 
-  uint32_t size_;
-  uint32_t offset_;
-  char name_[64];
+  uint32_t size;
+  uint32_t offset;
+  char name[64];
 };
 
 }  // namespace initrd

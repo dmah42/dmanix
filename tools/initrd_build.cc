@@ -39,26 +39,27 @@ int main(int argc, const char* argv[]) {
     size_t insize = infile.tellg();
     infile.seekg(0);
 
-    FileHeader header(output, insize, content_stream.tellp());
+    initrd::FileHeader header(output, insize, content_stream.tellp());
     header_stream.write((const char*) &header, sizeof(header));
 
     char* inbuffer = new char[insize];
     infile.read(inbuffer, insize);
     content_stream.write(inbuffer, insize);
 
-    std::cout << "[" << num_files << "] " << input << " -> " << header.name_ <<
-                 " @ " << header.offset_ << "\n";
+    std::cout << "[" << num_files << "] " << input << " -> " << header.name <<
+                 " @ " << header.offset << "\n";
 
     ++num_files;
   }
 
-  Header header(num_files, sizeof(Header) + header_stream.tellg());
+  initrd::Header header(num_files, sizeof(initrd::Header) + header_stream.tellp());
   std::cout << "File count: " << header.num_files << "\n";
-  std::cout << "Header size: " << header.content_offset << "\n";
+  std::cout << "Content offset: " << sizeof(initrd::Header) << " + " <<
+               header_stream.tellp() << " = " << header.content_offset << "\n";
 
   // Write out initrd
   std::ofstream initrd("initrd", std::ifstream::binary);
-  initrd.write((const char*) &header, sizeof(Header));
+  initrd.write((const char*) &header, sizeof(initrd::Header));
   header_stream.seekg(0);
   initrd << header_stream.rdbuf();
   content_stream.seekg(0);

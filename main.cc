@@ -171,7 +171,7 @@ namespace test {
       screen::puts("Found file: ");
       screen::puts(node->name);
       fs::Node* fsnode = fs::root->FindDir(node->name);
-      if ((fsnode->flags & 0x7) == fs::FLAG_DIRECTORY)
+      if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)
         screen::puts("\t(directory)\n");
       else {
         screen::puts("\tcontents:\n\t\"");
@@ -206,8 +206,6 @@ int main() {
 
   // test::memory();
 
-  //  screen::puts("initializing paging\n");
-
   paging::Initialize();
 
   asm volatile("sti");
@@ -221,7 +219,7 @@ int main() {
   screen::puts("NIX\n");
   screen::ResetColor();
 
-  screen::puts("initializing inird\n");
+  screen::puts("initializing initrd\n");
   fs::root = initrd::Initialize(initrd_location);
   screen::puts("done\n");
 

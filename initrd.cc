@@ -26,11 +26,11 @@ fs::DirEntry curr_dir;
 
 uint32_t Read(fs::Node *node, uint32_t offset, uint32_t size, uint8_t* buffer) {
   const FileHeader& header = file_headers[node->inode];
-  if (offset > header.size_)
+  if (offset > header.size)
     return 0;
-  if (offset + size > header.size_)
-    size = header.size_ - offset;
-  memory::copy(buffer, (uint8_t*) (header.offset_ + offset), size);
+  if (offset + size > header.size)
+    size = header.size - offset;
+  memory::copy(buffer, (uint8_t*) (header.offset + offset), size);
   return size;
 }
 
@@ -62,9 +62,7 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
 }  // namespace
 
 fs::Node* Initialize(uint32_t location) {
-  screen::puts("  initrd @ ");
-  screen::puth(location);
-  screen::putc('\n');
+  screen::Printf("  initrd @ %x\n", location);
   // TODO: Node ctor should take name/type
   //root = new (kalloc(sizeof(fs::Node))) fs::Node();
   root = (fs::Node*) kalloc(sizeof(fs::Node));
@@ -93,21 +91,15 @@ fs::Node* Initialize(uint32_t location) {
   file_headers = (FileHeader*)(location + sizeof(Header));
 
   num_nodes = header->num_files;
-  screen::puts("  num_files: ");
-  screen::putd(num_nodes);
-  screen::putc('\n');
+  screen::Printf("  num_files: %u\n", num_nodes);
   //nodes = new (kalloc(sizeof(fs::Node) * num_nodes)) fs::Node[num_nodes]();
   nodes = (fs::Node*) kalloc(sizeof(fs::Node) * num_nodes);
   for (uint32_t i = 0; i < num_nodes; ++i) {
-    file_headers[i].offset_ += location + header->content_offset;
+    file_headers[i].offset += location + header->content_offset;
 
-    string::copy(nodes[i].name, file_headers[i].name_);
-    screen::puts("    ");
-    screen::puts(file_headers[i].name_);
-    screen::puts(" @ ");
-    screen::puth(file_headers[i].offset_);
-    screen::putc('\n');
-    nodes[i].length = file_headers[i].size_;
+    string::copy(nodes[i].name, file_headers[i].name);
+    screen::Printf("    %s @ %x\n", file_headers[i].name, file_headers[i].offset);
+    nodes[i].length = file_headers[i].size;
     nodes[i].inode = i;
     nodes[i].flags = fs::FLAG_FILE;
     nodes[i].read = Read;
