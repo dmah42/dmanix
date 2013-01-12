@@ -225,6 +225,12 @@ int main() {
                  ret, task::PID());
   screen::puts("=========================================\n");
 
+  // create a new process in a new address space which is a clone
+  uint32_t ret = task::Fork();
+  screen::Printf("Fork returned %x and getpid() returned %x\n",
+                 ret, task::PID());
+  screen::puts("=========================================\n");
+
   // test::vga();
   // test::colors();
   // test::interrupt();

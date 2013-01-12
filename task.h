@@ -1,5 +1,5 @@
-#ifndef TASK_H_
-#define TASK_H_
+#ifndef TASK_H
+#define TASK_H
 
 #include <stdint.h>
 
@@ -12,4 +12,4 @@ uint32_t PID();
 
 }
 
-#endif  // TASK_H_
+#endif  // TASK_H

@@ -314,7 +314,8 @@ uint32_t Heap::Contract(uint32_t new_size) {
   uint32_t old_size = end_address - start_address;
   uint32_t i = old_size - 0x1000;
   while (new_size < i) {
-    FreeFrame(GetPage(start_address + i, false, paging::kernel_directory));
+    paging::FreeFrame(
+        paging::GetPage(start_address + i, false, paging::kernel_directory));
     i -= 0x1000;
   }
   end_address = start_address + new_size;

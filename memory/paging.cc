@@ -49,6 +49,11 @@ Directory* kernel_directory = NULL;
 
 namespace {
 
+Directory* current_directory = NULL;
+Directory* kernel_directory = NULL;
+
+namespace {
+
 // TODO: Remove assumption of 16Mb
 const uint32_t mem_end = 0x1000000;
 
@@ -285,6 +290,56 @@ Table* Table::Clone(uint32_t* physical) {
     // Copy the data across. See process.s.
     copy_page_physical(FRAME_TO_ADDR(pages[i].frame),
                        FRAME_TO_ADDR(table->pages[i].frame));
+  }
+  return table;
+}
+
+Directory* Directory::Clone() {
+  uint32_t phys;
+  Directory* dir = (Directory*) kalloc_pa(sizeof(Directory), &phys);
+  memory::set(dir, 0, sizeof(Directory));
+
+  // Get offset of physical table
+  uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
+
+  dir->physicalAddress = phys + offset;
+
+  // Copy the page table
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (tables[i] == 0)
+      continue;
+    if (kernel_directory->tables[i] == tables[i]) {
+      // In the kernel - use the same pointer
+      dir->tables[i] = tables[i];
+      dir->physical[i] = physical[i];
+    } else {
+      // Copy the table
+      uint32_t phys;
+      dir->tables[i] = tables[i]->Clone(&phys);
+      dir->physical[i] = phys | 0x7; // TODO: better flags
+    }
+  }
+
+  return dir;
+}
+
+Table* Table::Clone(uint32_t* physical) {
+  Table* table = (Table*) kalloc_pa(sizeof(Table), physical);
+  memory::set(table, 0, sizeof(Table));
+
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (pages[i].frame == 0)
+      continue;
+    AllocFrame(&table->pages[i], false, false);
+    // TODO: copy ctor
+    table->pages[i].present = pages[i].present;
+    table->pages[i].rw = pages[i].rw;
+    table->pages[i].user = pages[i].user;
+    table->pages[i].accessed = pages[i].accessed;
+    table->pages[i].dirty = pages[i].dirty;
+    // Copy the data across. See process.s.
+    copy_page_physical(table->pages[i].frame * 0x1000,
+                       pages[i].frame * 0x1000);
   }
   return table;
 }
