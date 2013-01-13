@@ -1,7 +1,7 @@
 #ifndef ISR_H
 #define ISR_H
 
-#include "base.h"
+#include <stdint.h>
 
 const uint8_t IRQ0 = 32;
 const uint8_t IRQ1 = 33;

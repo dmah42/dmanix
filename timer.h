@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "base.h"
+#include <stdint.h>
 
 namespace timer {
 

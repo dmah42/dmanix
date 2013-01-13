@@ -1,7 +1,7 @@
 #ifndef MULTIBOOT_H
 #define MULTIBOOT_H
 
-#include "base.h"
+#include <stdint.h>
 
 #define MULTIBOOT_BOOTLOADER_MAGIC 0x2BADB002
 

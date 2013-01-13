@@ -1,10 +1,11 @@
 #include "paging.h"
 
-#include "base.h"
+#include <new>
+
+#include "array_size.h"
 #include "heap.h"
 #include "isr.h"
 #include "memory.h"
-#include "new.h"
 #include "screen.h"
 
 // from kalloc.cc
@@ -31,23 +32,23 @@ struct Page {
 };
 
 struct Table {
-//  Table() {
-//    memory::set((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
-//  }
+  Table() {
+    memory::set((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
+  }
   Page pages[1024];
 };
 
 struct Directory {
-//  Directory() : physicalAddress(0) {
-//    memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-//    memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
-//  }
-//  ~Directory() {
-//    for (uint32_t i = 0; i < 1024; ++i) {
-//      tables[i]->~Table();
-//      kfree(tables[i]);
-//    }
-//  }
+  Directory() : physicalAddress(0) {
+    memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+    memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+  }
+  ~Directory() {
+    for (uint32_t i = 0; i < 1024; ++i) {
+      tables[i]->~Table();
+      kfree(tables[i]);
+    }
+  }
   Table* tables[1024];
   uint32_t physical[1024];
   uint32_t physicalAddress;
@@ -144,8 +145,8 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == 0 && make) {
     uint32_t tmp;
-    dir->tables[table_index] = (Table*) kalloc_pa(sizeof(Table), &tmp);
-    memory::set(dir->tables[table_index], 0, 0x1000);
+    void* table_mem = kalloc_pa(sizeof(Table), &tmp);
+    dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;
   }
 
@@ -179,6 +180,7 @@ void PageFault(const isr::Registers& regs) {
 
 }  // namespace
 
+// TODO: shutdown
 void Initialize() {
   num_frames = mem_end / 0x1000;
   frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
@@ -186,8 +188,8 @@ void Initialize() {
 
   // Create the page directory
   //kernel_directory = new (kalloc_pa(sizeof(Directory))) Directory();
-  kernel_directory = (Directory*) kalloc_pa(sizeof(Directory));
-  memory::set(kernel_directory, 0, sizeof(Directory));
+  void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
+  kernel_directory = new (kernel_directory_mem) Directory();
   current_directory = kernel_directory;
 
   // Map pages in the kernel heap area.

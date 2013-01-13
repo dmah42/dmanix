@@ -1,7 +1,6 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-#include "base.h"
 
 enum Color {
   COLOR_BLACK = 0,

@@ -1,7 +1,7 @@
 #ifndef FS_H
 #define FS_H
 
-#include "base.h"
+#include <stdint.h>
 
 namespace fs {
 
@@ -25,7 +25,11 @@ enum Flags {
   FLAG_MOUNTPOINT = 0x8,
 };
 
-struct Node {
+class Node {
+ public:
+  Node();
+  explicit Node(const char* node_name, uint32_t flags);
+
   char name[128];
   uint32_t perm;
   uint32_t uid;
@@ -45,13 +49,16 @@ struct Node {
   // For mountpoints and symlinks
   Node* link;
 
-  Node();
   uint32_t Read(uint32_t offset, uint32_t size, uint8_t* buffer);
   uint32_t Write(uint32_t offset, uint32_t size, uint8_t* buffer);
   void Open();
   void Close();
   DirEntry* ReadDir(uint32_t index);
   Node* FindDir(const char* name);
+
+ private:
+  // these methods intentionally left unimplemented.
+  Node(const Node&);
 };
 
 struct DirEntry {

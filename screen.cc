@@ -1,9 +1,10 @@
-#include "base.h"
-#include "io.h"
-#include "memory.h"
 #include "screen.h"
 
 #include <stdarg.h>
+
+#include "assert.h"
+#include "io.h"
+#include "memory.h"
 
 #define NUM_ROWS 25
 #define NUM_COLS 80

@@ -1,4 +1,8 @@
-#include "base.h"
+#include "string.h"
+
+#include <stdint.h>
+
+#include "assert.h"
 
 namespace string {
 

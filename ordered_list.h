@@ -1,6 +1,7 @@
 #ifndef ORDERED_LIST_H
 #define ORDERED_LIST_H
 
+#include "assert.h"
 #include "kalloc.h"
 #include "memory.h"
 #include "screen.h"

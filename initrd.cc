@@ -1,8 +1,9 @@
-#include "base.h"
+#include <new>
+
 #include "fs.h"
 #include "kalloc.h"
 #include "memory.h"
-#include "new.h"
+#include "multiboot.h"
 #include "screen.h"
 #include "string.h"
 #include "tools/initrd_build.h"
@@ -50,7 +51,7 @@ fs::DirEntry* ReadDir(fs::Node* node, uint32_t index) {
 }
 
 fs::Node* FindDir(fs::Node* node, const char* name) {
-  if (node == root && string::compare(name, "dev"))
+  if (node == root && string::compare(name, DEV))
     return dev;
   for (uint32_t i = 0; i < num_nodes; ++i) {
     if (string::compare(name, nodes[i].name))
@@ -61,30 +62,22 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
 
 }  // namespace
 
-fs::Node* Initialize(uint32_t location) {
-  screen::Printf("  initrd @ %x\n", location);
-  // TODO: Node ctor should take name/type
-  //root = new (kalloc(sizeof(fs::Node))) fs::Node();
-  root = (fs::Node*) kalloc(sizeof(fs::Node));
-  string::copy(root->name, "initrd");
-  root->perm = root->uid = root->gid = root->inode = root->length = 0;
-  root->flags = fs::FLAG_DIRECTORY;
-  root->read = 0; root->write = 0; root->open = 0; root->close = 0;
+// TODO: shutdown
+fs::Node* Initialize(const multiboot::Module& initrd_module) {
+  const uint32_t location = initrd_module.start_address;
+  const uint32_t end = initrd_module.end_address;
+  screen::Printf("initrd: %x -> %x = %d bytes\n",
+                 location, end, end - location);
+
+  void* root_mem = kalloc(sizeof(fs::Node));
+  root = new (root_mem) fs::Node("initrd", fs::FLAG_DIRECTORY);
   root->readdir = ReadDir;
   root->finddir = FindDir;
-  root->link = 0;
-  root->impl = 0;
 
-  //dev = new (kalloc(sizeof(fs::Node))) fs::Node();
-  dev = (fs::Node*) kalloc(sizeof(fs::Node));
-  string::copy(dev->name, DEV);
-  dev->perm = dev->uid = dev->gid = dev->inode = dev->length = 0;
-  dev->flags = fs::FLAG_DIRECTORY;
-  dev->read = 0; dev->write = 0; dev->open = 0; dev->close = 0;
+  void* dev_mem = kalloc(sizeof(fs::Node));
+  dev = new (dev_mem) fs::Node(DEV, fs::FLAG_DIRECTORY);
   dev->readdir = ReadDir;
   dev->finddir = FindDir;
-  dev->link = 0;
-  dev->impl = 0;
 
   // Add the files
   header = (Header*) location;
@@ -93,7 +86,8 @@ fs::Node* Initialize(uint32_t location) {
   num_nodes = header->num_files;
   screen::Printf("  num_files: %u\n", num_nodes);
   //nodes = new (kalloc(sizeof(fs::Node) * num_nodes)) fs::Node[num_nodes]();
-  nodes = (fs::Node*) kalloc(sizeof(fs::Node) * num_nodes);
+  void* nodes_mem = (fs::Node*) kalloc(sizeof(fs::Node) * num_nodes);
+  nodes = new (nodes_mem) fs::Node[num_nodes]();
   for (uint32_t i = 0; i < num_nodes; ++i) {
     file_headers[i].offset += location + header->content_offset;
 

@@ -1,7 +1,6 @@
 #ifndef KMALLOC_H
 #define KMALLOC_H
 
-#include "base.h"
 #include "ordered_list.h"
 
 class Heap {

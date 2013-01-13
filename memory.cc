@@ -1,5 +1,7 @@
 #include "memory.h"
 
+#include "assert.h"
+
 namespace memory {
 namespace {
 

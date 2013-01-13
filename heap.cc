@@ -1,7 +1,5 @@
 #include "heap.h"
 
-#include "new.h"
-
 #define HEAP_INDEX_SIZE     0x20000
 #define HEAP_MAGIC          0x0ABBCCD0
 #define HEAP_MIN_SIZE       0x70000

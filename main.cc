@@ -1,4 +1,3 @@
-#include "base.h"
 #include "dt.h"
 #include "fs.h"
 #include "heap.h"
@@ -189,11 +188,6 @@ int main() {
 
   ASSERT(mbd->mods_count > 0);
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
-  const uint32_t initrd_location = mod[0].start_address;
-  const uint32_t initrd_end = mod[0].end_address;
-  screen::Printf("initrd: %x -> %x = %d bytes\n",
-                 initrd_location, initrd_end,
-                 initrd_end - initrd_location);
 
   // Update base address so we don't trample the modules.
   base_address = mod[mbd->mods_count - 1].end_address;
@@ -214,7 +208,7 @@ int main() {
   screen::ResetColor();
 
   screen::puts("initializing initrd\n");
-  fs::root = initrd::Initialize(initrd_location);
+  fs::root = initrd::Initialize(mod[0]);
   screen::puts("done\n");
 
   // test::vga();

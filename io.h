@@ -1,7 +1,7 @@
 #ifndef IO_H
 #define IO_H
 
-#include "base.h"
+#include <stdint.h>
 
 namespace io {
 

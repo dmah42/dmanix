@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "base.h"
+#include <stdint.h>
 
 namespace memory {
 
