@@ -24,11 +24,7 @@ enum Color {
 
 namespace screen {
 
-void putc(char c);
 void puts(const char* s);
-void puth(uint32_t h);
-void putd(int32_t d);
-void putu(uint32_t u);
 
 void Clear();
 void Printf(const char* format, ...);

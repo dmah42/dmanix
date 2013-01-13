@@ -59,8 +59,8 @@ extern isr_handler
 isr_common_stub:
   pusha             ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
 
-  mov  ax, ds
-  push eax          ; save the data segment descriptor
+  mov   ax, ds
+  push  eax         ; save the data segment descriptor
 
   mov   ax, 0x10    ; load the kernel data segment descriptor
   mov   ds, ax

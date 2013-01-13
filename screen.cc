@@ -92,8 +92,6 @@ void puts(const char* s) {
 }
 
 void puth(uint32_t hex) {
-  puts("0x");
-
   for (int i = 28; i > 0; i -= 4) {
     const uint8_t h = (hex >> i) & 0xf;
     if (h >= 0xA) {

@@ -1,7 +1,6 @@
 #include "heap.h"
 
 #include "new.h"
-#include "screen.h"
 
 #define HEAP_INDEX_SIZE     0x20000
 #define HEAP_MAGIC          0x0ABBCCD0

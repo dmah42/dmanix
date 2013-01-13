@@ -128,9 +128,7 @@ namespace test {
   }
 
   void timer_callback(uint32_t tick) {
-    screen::puts("Tick: ");
-    screen::putd(tick);
-    screen::putc('\n');
+    screen::Printf("Tick: %u\n", tick);
   }
 
   void timer() {
@@ -146,20 +144,17 @@ namespace test {
   void memory() {
     screen::puts("memory test start\n");
     void* a = kalloc(8);
-    screen::puts("a: ");
-    screen::puth((uint32_t) a);
+    screen::Printf("a: 0x%x", a);
     void* b = kalloc(8);
-    screen::puts(", b: ");
-    screen::puth((uint32_t) b);
+    screen::Printf(", b: 0x%x\n", b);
 
-    screen::puts("\nabout to free\n");
+    screen::puts("about to free\n");
     kfree(b);
     kfree(a);
     screen::puts("freed\n");
     void* d = kalloc(12);
-    screen::puts("d: ");
-    screen::puth((uint32_t) d);
-    screen::puts("\nfreeing...\n");
+    screen::Printf("d: 0x%x\n", d);
+    screen::puts("freeing...\n");
     kfree(d); 
     screen::puts("freed\n");
   }
@@ -168,8 +163,7 @@ namespace test {
     uint32_t i = 0;
     fs::DirEntry* node = 0;
     while ((node = fs::root->ReadDir(i)) != 0) {
-      screen::puts("Found file: ");
-      screen::puts(node->name);
+      screen::Printf("Found file: %s", node->name);
       fs::Node* fsnode = fs::root->FindDir(node->name);
       if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)
         screen::puts("\t(directory)\n");

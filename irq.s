@@ -1,5 +1,4 @@
 ; First parameter is IRQ number, second is remapped number
-
 %macro IRQ 2
   global irq%1
   irq%1:
@@ -26,9 +25,9 @@ IRQ 13, 45
 IRQ 14, 46
 IRQ 15, 47
 
-[EXTERN irq_handler]
+extern irq_handler
 
-; see isr_common_stub for comments
+; see isr_common_stub for comments. Only difference here is use of iret.
 irq_common_stub:
   pusha
 

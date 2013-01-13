@@ -173,9 +173,7 @@ void PageFault(const isr::Registers& regs) {
   if (user) screen::puts("user-mode ");
   if (reserved) screen::puts("reserved ");
   if (instruction) screen::puts("instruction ");
-  screen::puts(") at ");
-  screen::puth(faulting_address);
-  screen::putc('\n');
+  screen::Printf(") at 0x%x\n", faulting_address);
   PANIC("Page fault"); 
 }
 

@@ -18,47 +18,14 @@ extern "C" {
 
 void isr_handler(isr::Registers regs) {
   screen::puts("received interrupt:\n");
-  screen::puts(" DS:\t");
-  screen::puth(regs.ds);
-  screen::putc('\n');
-
-  screen::puts(" EDI: ");
-  screen::puth(regs.edi);
-  screen::puts(" ESI: ");
-  screen::puth(regs.esi);
-  screen::puts(" EBP: ");
-  screen::puth(regs.ebp);
-  screen::puts(" ESP: ");
-  screen::puth(regs.esp);
-  screen::putc('\n');
-
-  screen::puts(" EBX: ");
-  screen::puth(regs.ebx);
-  screen::puts(" EDX: ");
-  screen::puth(regs.edx);
-  screen::puts(" ECX: ");
-  screen::puth(regs.ecx);
-  screen::puts(" EAX: ");
-  screen::puth(regs.eax);
-  screen::putc('\n');
-
-  screen::puts(" INTERRUPT: ");
-  screen::puth(regs.int_no);
-  screen::puts(" ERR: ");
-  screen::puth(regs.err_code);
-  screen::putc('\n');
-
-  screen::puts(" EIP: ");
-  screen::puth(regs.eip);
-  screen::puts(" CS: ");
-  screen::puth(regs.cs);
-  screen::puts(" EFLAGS: ");
-  screen::puth(regs.eflags);
-  screen::puts(" USER_ESP: ");
-  screen::puth(regs.useresp);
-  screen::puts(" SS: ");
-  screen::puth(regs.ss);
-  screen::putc('\n');
+  screen::Printf(" DS:\t0x%x\n", regs.ds);
+  screen::Printf(" EDI:\t0x%x ESI:\t0x%x EBP:\t0x%x ESP:\t0x%x\n",
+                 regs.edi, regs.esi, regs.ebp, regs.esp);
+  screen::Printf(" EBX:\t0x%x EDX:\t0x%x ECX:\t0x%x EAX:\t0x%x\n",
+                 regs.ebx, regs.edx, regs.ecx, regs.eax);
+  screen::Printf(" INTERRUPT: 0x%x ERR: 0x%x\n", regs.int_no, regs.err_code);
+  screen::Printf(" EIP:\t0x%x CS:\t0x%x EFLAGS:\t0x%x USERESP:\t0x%x SS:\t0x%x\n",
+                 regs.eip, regs.cs, regs.eflags, regs.useresp, regs.ss);
 
   if (isr::handlers[regs.int_no] != 0)
     isr::handlers[regs.int_no](regs);

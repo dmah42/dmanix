@@ -2,7 +2,6 @@
 
 #include "io.h"
 #include "isr.h"
-#include "screen.h"
 
 namespace timer {
 namespace {

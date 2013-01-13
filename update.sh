@@ -1,9 +1,10 @@
 #!/bin/bash
 
-sudo losetup /dev/loop0 floppy.img
-sudo mount /dev/loop0 /mnt/dmaos_floppy
-sudo cp kernel /mnt/dmaos_floppy/kernel
-sudo cp initrd /mnt/dmaos_floppy/initrd
-sleep 3
-sudo umount /mnt/dmaos_floppy
-sudo losetup -d /dev/loop0
+sudo /sbin/losetup /dev/loop0 floppy.img
+sudo /bin/mount /dev/loop0 /mnt/dmaos_floppy
+for f in kernel initrd; do
+  sudo cp $f /mnt/dmaos_floppy/$f
+done
+sleep 2
+sudo /bin/umount /mnt/dmaos_floppy
+sudo /sbin/losetup -d /dev/loop0
