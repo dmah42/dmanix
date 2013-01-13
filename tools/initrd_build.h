@@ -1,6 +1,8 @@
 #ifndef INITRD_BUILD_H
 #define INITRD_BUILD_H
 
+#include <string.h>
+
 namespace initrd {
 
 struct Header {

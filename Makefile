@@ -4,7 +4,8 @@ CC = g++
 AS = nasm
 LD = ld
 
-CC_SOURCES := $(wildcard *.cc)
+# TODO: Use wildcard for dir, exclude tools.
+CC_SOURCES := $(wildcard *.cc) $(wildcard fs/*.cc)
 AS_SOURCES := $(wildcard *.s)
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 AS_OBJECTS := $(addprefix $(OBJDIR)/,$(AS_SOURCES:.s=.o))
@@ -15,7 +16,7 @@ INITRD_BUILD = tools/initrd_build
 EXECUTABLE = kernel
 MODULES = initrd
 
-CXXFLAGS = -Wall -Werror -Wextra -O0 \
+CXXFLAGS = -Wall -Werror -Wextra -O0 -I. \
 					 -nostdlib -nodefaultlibs \
 					 -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
 				   -m32 -g
@@ -37,6 +38,7 @@ $(OBJDIR):
 	@mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: %.cc
+	@mkdir -p $(dir $@)
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: %.s

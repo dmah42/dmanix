@@ -1,9 +1,9 @@
-#include "fs.h"
+#include "fs/node.h"
+
+#include "fs/fs.h"
 #include "string.h"
 
 namespace fs {
-
-Node* root = 0;
 
 Node::Node()
     : perm(0), uid(0), gid(0), flags(0), inode(0), length(0), impl(0), 

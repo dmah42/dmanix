@@ -1,5 +1,6 @@
 #include "dt.h"
-#include "fs.h"
+#include "fs/fs.h"
+#include "fs/node.h"
 #include "heap.h"
 #include "initrd.h"
 #include "multiboot.h"

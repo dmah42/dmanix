@@ -1,6 +1,7 @@
 #include <new>
 
-#include "fs.h"
+#include "fs/fs.h"
+#include "fs/node.h"
 #include "kalloc.h"
 #include "memory.h"
 #include "multiboot.h"
