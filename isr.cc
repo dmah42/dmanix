@@ -1,11 +1,13 @@
 #include "isr.h"
 
+#include <stdlib.h>
+
 #include "io.h"
 #include "screen.h"
 
 namespace isr {
 
-Handler handlers[256] = {0};
+Handler handlers[256] = {NULL};
 
 void RegisterHandler(Interrupt interrupt, Handler h) {
   handlers[interrupt] = h;
@@ -36,7 +38,7 @@ void irq_handler(isr::Registers regs) {
     io::outb(0xA0, 0x20);
   io::outb(0x20, 0x20);
 
-  if (isr::handlers[regs.int_no] != 0)
+  if (isr::handlers[regs.int_no] != NULL)
     isr::handlers[regs.int_no](regs);
 }
 

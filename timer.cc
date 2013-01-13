@@ -1,5 +1,7 @@
 #include "timer.h"
 
+#include <stdlib.h>
+
 #include "io.h"
 #include "isr.h"
 
@@ -7,11 +9,11 @@ namespace timer {
 namespace {
 
 uint32_t tick = 0;
-Callback callback = 0;
+Callback callback = NULL;
 
 void OnTick(const isr::Registers&) {
   ++tick;
-  if (callback != 0)
+  if (callback != NULL)
     callback(tick);
 }
 
@@ -31,7 +33,7 @@ void Initialize(uint32_t frequency) {
 }
 
 void Shutdown() {
-  callback = 0;
+  callback = NULL;
 }
 
 void RegisterCallback(Callback cb) {

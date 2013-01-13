@@ -16,7 +16,7 @@ extern uint32_t base_address;
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
 #define KHEAP_MAX           0xCFFFF000
 
-Heap* kheap = 0;
+Heap* kheap = NULL;
 
 namespace paging {
 namespace {
@@ -40,8 +40,8 @@ struct Table {
 
 struct Directory {
   Directory() : physicalAddress(0) {
-    memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-    memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+    memory::set(tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+    memory::set(physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
   }
   ~Directory() {
     for (uint32_t i = 0; i < 1024; ++i) {
@@ -57,8 +57,8 @@ struct Directory {
 // TODO: Remove assumption of 16Mb
 const uint32_t mem_end = 0x1000000;
 
-Directory* kernel_directory = 0;
-Directory* current_directory = 0;
+Directory* kernel_directory = NULL;
+Directory* current_directory = NULL;
 
 // bitset of used/free frames
 // TODO: class
@@ -143,14 +143,14 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
   address = ADDR_TO_FRAME(address);
   uint32_t table_index = address / 1024;
 
-  if (dir->tables[table_index] == 0 && make) {
+  if (dir->tables[table_index] == NULL && make) {
     uint32_t tmp;
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
     dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;
   }
 
-  ASSERT(dir->tables[table_index] != 0);
+  ASSERT(dir->tables[table_index] != NULL);
   return &dir->tables[table_index]->pages[address%1024];
 }
 

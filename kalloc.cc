@@ -11,9 +11,9 @@ extern Heap* kheap;
 namespace {
 
 void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
-  if (kheap != 0) {
+  if (kheap != NULL) {
     uint32_t addr = (uint32_t) kheap->Alloc(size, page_align);
-    if (phys != 0)
+    if (phys != NULL)
       *phys = paging::GetPhysicalAddress(addr);
     return (void*) addr;
   } else {
@@ -21,7 +21,7 @@ void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
       base_address &= 0xFFFFF000;
       base_address += 0x1000;
     }
-    if (phys != 0)
+    if (phys != NULL)
       *phys = base_address;
     uint32_t mem = base_address;
     base_address += size;
@@ -32,7 +32,7 @@ void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
 }  // namespace
 
 void* kalloc(uint32_t size) {
-  return kalloc_internal(size, false, 0);
+  return kalloc_internal(size, false, NULL);
 }
 
 void* kalloc_p(uint32_t size, uint32_t* phys) {
@@ -44,9 +44,9 @@ void* kalloc_pa(uint32_t size, uint32_t* phys) {
 }
 
 void kfree(void* p) {
-  if (kheap != 0) {
+  if (kheap != NULL) {
     if (p == kheap)
-      kheap = 0;
+      kheap = NULL;
     else
       kheap->Free(p);
   }

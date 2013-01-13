@@ -144,7 +144,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 }
 
 void Heap::Free(void* p) {
-  if (p == 0)
+  if (p == NULL)
     return;
 
   Header* header = (Header*) ((uint32_t) p - sizeof(Header));

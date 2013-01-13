@@ -161,8 +161,8 @@ namespace test {
 
   void initrd() {
     uint32_t i = 0;
-    fs::DirEntry* node = 0;
-    while ((node = fs::root->ReadDir(i)) != 0) {
+    fs::DirEntry* node = NULL;
+    while ((node = fs::root->ReadDir(i)) != NULL) {
       screen::Printf("Found file: %s", node->name);
       fs::Node* fsnode = fs::root->FindDir(node->name);
       if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)

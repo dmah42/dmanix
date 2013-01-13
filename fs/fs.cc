@@ -1,7 +1,9 @@
 #include "fs/fs.h"
 
+#include <stdlib.h>
+
 namespace fs {
 
-Node* root = 0;
+Node* root = NULL;
 
 }  // namespace fs

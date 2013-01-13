@@ -1,5 +1,7 @@
 #include "fs/node.h"
 
+#include <stdlib.h>
+
 #include "fs/fs.h"
 #include "string.h"
 
@@ -7,15 +9,17 @@ namespace fs {
 
 Node::Node()
     : perm(0), uid(0), gid(0), flags(0), inode(0), length(0), impl(0), 
-      read(0), write(0), open(0), close(0), readdir(0), finddir(0),
-      link(0) {
+      read(NULL), write(NULL), open(NULL), close(NULL),
+      readdir(NULL), finddir(NULL),
+      link(NULL) {
   name[0] = '\0';
 }
 
 Node::Node(const char* node_name, uint32_t flags)
     : perm(0), uid(0), gid(0), flags(flags), inode(0), length(0), impl(0), 
-      read(0), write(0), open(0), close(0), readdir(0), finddir(0),
-      link(0) {
+      read(NULL), write(NULL), open(NULL), close(NULL),
+      readdir(NULL), finddir(NULL),
+      link(NULL) {
   string::copy(name, node_name);
 }
 
@@ -38,13 +42,13 @@ void Node::Close() {
 DirEntry* Node::ReadDir(uint32_t index) {
   if ((flags & FLAG_DIRECTORY) == FLAG_DIRECTORY && readdir)
     return readdir(this, index);
-  return 0;
+  return NULL;
 }
 
 Node* Node::FindDir(const char* name) {
   if ((flags & FLAG_DIRECTORY) == FLAG_DIRECTORY && finddir)
     return finddir(this, name);
-  return 0;
+  return NULL;
 }
 
 }  // namespace fs

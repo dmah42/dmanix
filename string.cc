@@ -1,6 +1,7 @@
 #include "string.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "assert.h"
 
@@ -14,8 +15,8 @@ uint32_t length(const char* s) {
 }
 
 bool compare(const char* a, const char* b) {
-  ASSERT(a != 0);
-  ASSERT(b != 0)
+  ASSERT(a != NULL);
+  ASSERT(b != NULL)
   while (*a != '\0' && *b != '\0') {
     if (*a++ != *b++)
       return false;
@@ -25,8 +26,8 @@ bool compare(const char* a, const char* b) {
 }
 
 char* copy(char* dest, const char* source) {
-  ASSERT(dest != 0);
-  ASSERT(source != 0);
+  ASSERT(dest != NULL);
+  ASSERT(source != NULL);
   while (*source != '\0')
     *dest++ = *source++;
   return dest;

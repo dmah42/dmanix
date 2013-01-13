@@ -45,7 +45,7 @@ fs::DirEntry* ReadDir(fs::Node* node, uint32_t index) {
 
   index -= 1;
   if (index >= num_nodes)
-    return 0;
+    return NULL;
   string::copy(curr_dir.name, nodes[index].name); 
   curr_dir.inode = nodes[index].inode;
   return &curr_dir;
@@ -58,7 +58,7 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
     if (string::compare(name, nodes[i].name))
       return &nodes[i];
   }
-  return 0;
+  return NULL;
 }
 
 }  // namespace

@@ -1,5 +1,7 @@
 #include "memory.h"
 
+#include <stdlib.h>
+
 #include "assert.h"
 
 namespace memory {
@@ -7,8 +9,8 @@ namespace {
 
 template<typename T>
   T* copy_internal(T* dest, const T* src, uint32_t n) {
-    ASSERT(dest != 0);
-    ASSERT(src != 0);
+    ASSERT(dest != NULL);
+    ASSERT(src != NULL);
     for (uint32_t i = 0; i < n; ++i)
       dest[i] = src[i];
     return dest;
@@ -16,7 +18,7 @@ template<typename T>
 
 template<typename T>
   T* set_internal(T* dest, T c, uint32_t n) {
-    ASSERT(dest != 0);
+    ASSERT(dest != NULL);
     for (uint32_t i = 0; i < n; ++i)
       dest[i] = c;
     return dest;

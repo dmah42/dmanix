@@ -34,6 +34,7 @@ class OrderedList {
 };
 
 // static
+// TODO: specialize for pointer type
 template<typename T>
 OrderedList<T> OrderedList<T>::Create(void* array,
                                       uint32_t capacity,
