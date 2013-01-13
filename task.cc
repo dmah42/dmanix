@@ -1,4 +1,3 @@
-#include "base.h"
 #include "kalloc.h"
 #include "memory.h"
 #include "paging.h"
@@ -23,6 +22,10 @@ namespace task {
 namespace {
 
 struct Task {
+  ~Task() {
+    directory->~Directory();
+    kfree(directory);
+  }
   uint32_t pid;
   uint32_t esp, ebp;
   uint32_t eip;
@@ -87,6 +90,7 @@ void Initialize() {
   MoveStack((void*) 0xE0000000, 0x4000);
 
   // Initialize the first (kernel) task
+  // TODO: Task ctor.
   current = queue = (Task*) kalloc(sizeof(Task));
   current->pid = next_pid++;
   current->esp = current->ebp = 0;
@@ -95,6 +99,16 @@ void Initialize() {
   current->next = 0;
 
   asm volatile("sti");
+}
+
+void Shutdown() {
+  Task* it = queue;
+  while (it != 0) {
+    Task* next = it->next;
+    it->~Task();
+    kfree(it);
+    it = next;
+  }
 }
 
 uint32_t Fork() {

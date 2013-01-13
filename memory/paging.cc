@@ -43,22 +43,6 @@ struct Table {
   Page pages[1024];
 };
 
-struct Directory {
-  Directory() : physicalAddress(0) {
-    memory::set(tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-    memory::set(physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
-  }
-  ~Directory() {
-    for (uint32_t i = 0; i < 1024; ++i) {
-      tables[i]->~Table();
-      kfree(tables[i]);
-    }
-  }
-  Table* tables[1024];
-  uint32_t physical[1024];
-  uint32_t physicalAddress;
-};
-
 Directory* current_directory = NULL;
 Directory* kernel_directory = NULL;
 
@@ -142,9 +126,7 @@ void PageFault(const isr::Registers& regs) {
   if (user) screen::puts("user-mode ");
   if (reserved) screen::puts("reserved ");
   if (instruction) screen::puts("instruction ");
-  screen::puts(") at ");
-  screen::puth(faulting_address);
-  screen::putc('\n');
+  screen::Printf(") at 0x%x\n", faulting_address);
   PANIC("Page fault"); 
 }
 
@@ -189,39 +171,12 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
   return &dir->tables[table_index]->pages[address%1024];
 }
 
-void PageFault(const isr::Registers& regs) {
-  uint32_t faulting_address;
-  asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
-
-  bool present = !(regs.err_code & 0x1);
-  bool rw = regs.err_code & 0x2;
-  bool user = regs.err_code & 0x4;
-  bool reserved = regs.err_code & 0x8;
-  bool instruction = regs.err_code & 0x10;
-
-  // Output error message to screen
-  screen::SetColor(COLOR_BLACK, COLOR_DARK_RED);
-  screen::puts("PAGE FAULT");
-  screen::SetColor(COLOR_WHITE, COLOR_BLACK);
-  screen::puts(" (");
-  if (present) screen::puts("present ");
-  if (rw) screen::puts("read-only ");
-  if (user) screen::puts("user-mode ");
-  if (reserved) screen::puts("reserved ");
-  if (instruction) screen::puts("instruction ");
-  screen::Printf(") at 0x%x\n", faulting_address);
-  PANIC("Page fault"); 
-}
-
-}  // namespace
-
 void Initialize() {
   num_frames = mem_end / 0x1000;
   frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
   memory::set(frames, 0, INDEX_FROM_BIT(num_frames));
 
   // Create the page directory
-  //kernel_directory = new (kalloc_pa(sizeof(Directory))) Directory();
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
   kernel_directory = new (kernel_directory_mem) Directory();
   kernel_directory->physicalAddress = (uint32_t) kernel_directory->physical;
@@ -270,14 +225,27 @@ uint32_t GetPhysicalAddress(uint32_t address) {
   return page->frame * 0x1000 + (address & 0xFFF);
 }
 
+Directory::Directory() : physicalAddress(0) {
+  memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+  memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+}
+
+Directory::~Directory() {
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (tables[i] != 0) {
+      tables[i]->~Table();
+      kfree(tables[i]);
+    }
+  }
+}
+
 Directory* Directory::Clone() {
   uint32_t phys;
-  Directory* dir = (Directory*) kalloc_pa(sizeof(Directory), &phys);
-  memory::set(dir, 0, sizeof(Directory));
+  void* dir_mem = kalloc_pa(sizeof(Directory), &phys);
+  Directory* dir = new (dir_mem) Directory();
 
   // Get offset of physical table
   uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
-
   dir->physicalAddress = phys + offset;
 
   // Copy the page table
@@ -300,8 +268,8 @@ Directory* Directory::Clone() {
 }
 
 Table* Table::Clone(uint32_t* physical) {
-  Table* table = (Table*) kalloc_pa(sizeof(Table), physical);
-  memory::set(table, 0, sizeof(Table));
+  void* table_mem = kalloc_pa(sizeof(Table), physical);
+  Table* table = new (table_mem) Table();
 
   for (uint32_t i = 0; i < 1024; ++i) {
     if (pages[i].frame == 0)

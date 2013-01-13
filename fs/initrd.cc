@@ -66,7 +66,7 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
 fs::Node* Initialize(const multiboot::Module& initrd_module) {
   const uint32_t location = initrd_module.start_address;
   const uint32_t end = initrd_module.end_address;
-  screen::Printf("initrd: %x -> %x = %d bytes\n",
+  screen::Printf("initrd: 0x%x -> 0x%x = %d bytes\n",
                  location, end, end - location);
 
   void* root_mem = kalloc(sizeof(fs::Node));
@@ -92,7 +92,7 @@ fs::Node* Initialize(const multiboot::Module& initrd_module) {
     file_headers[i].offset += location + header->content_offset;
 
     string::copy(nodes[i].name, file_headers[i].name);
-    screen::Printf("    %s @ %x\n", file_headers[i].name, file_headers[i].offset);
+    screen::Printf("    %s @ 0x%x\n", file_headers[i].name, file_headers[i].offset);
     nodes[i].length = file_headers[i].size;
     nodes[i].inode = i;
     nodes[i].flags = fs::FLAG_FILE;
