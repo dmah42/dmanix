@@ -49,11 +49,6 @@ Directory* kernel_directory = NULL;
 
 namespace {
 
-Directory* current_directory = NULL;
-Directory* kernel_directory = NULL;
-
-namespace {
-
 // TODO: Remove assumption of 16Mb
 const uint32_t mem_end = 0x1000000;
 
@@ -294,14 +289,27 @@ Table* Table::Clone(uint32_t* physical) {
   return table;
 }
 
+Directory::Directory() : physicalAddress(0) {
+  memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+  memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+}
+
+Directory::~Directory() {
+  for (uint32_t i = 0; i < 1024; ++i) {
+    if (tables[i] != 0) {
+      tables[i]->~Table();
+      kfree(tables[i]);
+    }
+  }
+}
+
 Directory* Directory::Clone() {
   uint32_t phys;
-  Directory* dir = (Directory*) kalloc_pa(sizeof(Directory), &phys);
-  memory::set(dir, 0, sizeof(Directory));
+  void* dir_mem = kalloc_pa(sizeof(Directory), &phys);
+  Directory* dir = new (dir_mem) Directory();
 
   // Get offset of physical table
   uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
-
   dir->physicalAddress = phys + offset;
 
   // Copy the page table
@@ -324,8 +332,8 @@ Directory* Directory::Clone() {
 }
 
 Table* Table::Clone(uint32_t* physical) {
-  Table* table = (Table*) kalloc_pa(sizeof(Table), physical);
-  memory::set(table, 0, sizeof(Table));
+  void* table_mem = kalloc_pa(sizeof(Table), physical);
+  Table* table = new (table_mem) Table();
 
   for (uint32_t i = 0; i < 1024; ++i) {
     if (pages[i].frame == 0)

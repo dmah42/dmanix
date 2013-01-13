@@ -227,7 +227,7 @@ int main() {
 
   // create a new process in a new address space which is a clone
   uint32_t ret = task::Fork();
-  screen::Printf("Fork returned %x and getpid() returned %x\n",
+  screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
                  ret, task::PID());
   screen::puts("=========================================\n");
 
