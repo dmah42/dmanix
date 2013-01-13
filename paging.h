@@ -6,6 +6,8 @@
 namespace paging {
 
 void Initialize();
+void Shutdown();
+
 uint32_t GetPhysicalAddress(uint32_t address);
 
 }  // namespace paging

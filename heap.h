@@ -28,7 +28,7 @@ class Heap {
 
 //  Heap(uint32_t start, uint32_t end, uint32_t max,
 //       bool supervisor, bool readonly);
-//  ~Heap();
+  ~Heap();
 
   int32_t FindSmallestHole(uint32_t size, bool page_align) const;
   void Expand(uint32_t new_size);

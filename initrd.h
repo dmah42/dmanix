@@ -6,6 +6,7 @@ namespace multiboot { struct Module; }
 
 namespace initrd {
   fs::Node* Initialize(const multiboot::Module& initrd_module);
+  void Shutdown();
 }  // namespace initrd
 
 #endif  // INITRD_H

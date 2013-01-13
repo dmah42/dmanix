@@ -220,5 +220,15 @@ int main() {
   // test::memory();
   test::initrd();
 
+  // TODO: Launch executables
+
+  screen::puts("Shutting down... ");
+  initrd::Shutdown();
+  timer::Shutdown();
+  paging::Shutdown();
+  screen::puts("done.\n");
+  screen::SetColor(COLOR_WHITE, COLOR_BLACK);
+  screen::puts("Goodbye.\n");
+
   return 0;
 }

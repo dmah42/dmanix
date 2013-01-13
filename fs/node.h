@@ -18,6 +18,7 @@ class Node {
 
   Node();
   explicit Node(const char* node_name, uint32_t flags);
+  ~Node() { }
 
   uint32_t Read(uint32_t offset, uint32_t size, uint8_t* buffer);
   uint32_t Write(uint32_t offset, uint32_t size, uint8_t* buffer);

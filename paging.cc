@@ -180,7 +180,6 @@ void PageFault(const isr::Registers& regs) {
 
 }  // namespace
 
-// TODO: shutdown
 void Initialize() {
   num_frames = mem_end / 0x1000;
   frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
@@ -217,6 +216,15 @@ void Initialize() {
 
   // Create the kernel heap
   kheap = Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
+}
+
+void Shutdown() {
+  Heap::Destroy(kheap); 
+
+  kernel_directory->~Directory();
+  kfree(kernel_directory);
+
+  kfree(frames);
 }
 
 uint32_t GetPhysicalAddress(uint32_t address) {

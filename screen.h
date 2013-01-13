@@ -1,7 +1,6 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-
 enum Color {
   COLOR_BLACK = 0,
   COLOR_DARK_BLUE = 1,

@@ -44,6 +44,10 @@ void* kalloc_pa(uint32_t size, uint32_t* phys) {
 }
 
 void kfree(void* p) {
-  if (kheap != 0)
-    kheap->Free(p);
+  if (kheap != 0) {
+    if (p == kheap)
+      kheap = 0;
+    else
+      kheap->Free(p);
+  }
 }

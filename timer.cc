@@ -30,6 +30,10 @@ void Initialize(uint32_t frequency) {
   io::outb(0x40, (divisor >> 8) & 0xFF);
 }
 
+void Shutdown() {
+  callback = 0;
+}
+
 void RegisterCallback(Callback cb) {
   callback = cb;
 }

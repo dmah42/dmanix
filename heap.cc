@@ -40,7 +40,7 @@ Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
 
 // static
 void Heap::Destroy(Heap* heap) {
-  //heap->~Heap();
+  heap->~Heap();
   kfree(heap);
 }
 
@@ -210,6 +210,7 @@ bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
   return a->size < b->size;
 }
 
+// TODO
 //Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max, bool supervisor, bool readonly)
 //    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
 //      end_address(end_addr),
@@ -230,9 +231,15 @@ bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
 //  hole->is_hole = 1;
 //  index.Insert(hole);
 //}
-//
-//Heap::~Heap() {
-//}
+
+Heap::~Heap() {
+  // Ensure everything has been freed.
+  ASSERT(index.get_size() == 1);
+  Header* hole = (Header*) index.Lookup(0);
+  ASSERT(hole->magic == HEAP_MAGIC);
+  ASSERT(hole->is_hole == 1);
+  ASSERT(hole->size == end_address - start_address);
+}
 
 int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
   uint32_t iterator = 0;

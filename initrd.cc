@@ -63,7 +63,6 @@ fs::Node* FindDir(fs::Node* node, const char* name) {
 
 }  // namespace
 
-// TODO: shutdown
 fs::Node* Initialize(const multiboot::Module& initrd_module) {
   const uint32_t location = initrd_module.start_address;
   const uint32_t end = initrd_module.end_address;
@@ -86,7 +85,7 @@ fs::Node* Initialize(const multiboot::Module& initrd_module) {
 
   num_nodes = header->num_files;
   screen::Printf("  num_files: %u\n", num_nodes);
-  //nodes = new (kalloc(sizeof(fs::Node) * num_nodes)) fs::Node[num_nodes]();
+
   void* nodes_mem = (fs::Node*) kalloc(sizeof(fs::Node) * num_nodes);
   nodes = new (nodes_mem) fs::Node[num_nodes]();
   for (uint32_t i = 0; i < num_nodes; ++i) {
@@ -100,6 +99,18 @@ fs::Node* Initialize(const multiboot::Module& initrd_module) {
     nodes[i].read = Read;
   }
   return root;
+}
+
+void Shutdown() {
+  for (uint32_t i = 0; i < num_nodes; ++i)
+    nodes[i].~Node();
+  kfree(nodes);
+
+  dev->~Node();
+  kfree(dev);
+
+  root->~Node();
+  kfree(root);
 }
 
 }  // namespace initrd
