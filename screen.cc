@@ -151,6 +151,10 @@ void Printf(const char* format, ...) {
     else {
       c = *format++;
       switch(c) {
+        case 'c':
+          putc(va_arg(ap, int));
+          break;
+
         case 'd':
           putd(va_arg(ap, int32_t));
           break;

@@ -21,6 +21,9 @@ extern Node* root;
 // from kalloc.cc
 extern uint32_t base_address;
 
+// from paging.cc
+extern Heap* kheap;
+
 namespace test {
 
   void vga() {
@@ -148,6 +151,8 @@ namespace test {
     void* b = kalloc(8);
     screen::Printf(", b: 0x%x\n", b);
 
+    kheap->Dump();
+
     screen::puts("about to free\n");
     kfree(b);
     kfree(a);
@@ -217,8 +222,8 @@ int main() {
   // test::interrupt();
   // test::timer();
   // test::page_fault();
-  // test::memory();
-  test::initrd();
+   test::memory();
+  //test::initrd();
 
   // TODO: Launch executables
 
@@ -227,6 +232,9 @@ int main() {
   timer::Shutdown();
   paging::Shutdown();
   screen::puts("done.\n");
+
+  kheap->Dump();
+
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Goodbye.\n");
 

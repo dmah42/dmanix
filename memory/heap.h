@@ -12,6 +12,8 @@ class Heap {
   void* Alloc(uint32_t size, bool page_align);
   void Free(void* p);
 
+  void Dump();
+
  private:
   struct Header {
     uint32_t magic : 31;

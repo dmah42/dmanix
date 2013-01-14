@@ -180,6 +180,23 @@ void Heap::Free(void* p) {
     index.Insert(header);
 }
 
+void Heap::Dump() {
+  screen::puts("Dumping Heap...\n");
+  Header* header = (Header*) start_address;
+  while ((uint32_t) header < end_address) {
+    ASSERT(header->magic == HEAP_MAGIC);
+    uint32_t p = (uint32_t) header + sizeof(Header);
+    Footer* f = (Footer*)((uint32_t) header + header->size - sizeof(Footer));
+    ASSERT(f->magic == HEAP_MAGIC);
+    ASSERT(f->header == header);
+    uint32_t size = header->size - (sizeof(Header) + sizeof(Footer));
+    screen::Printf("  0x%x %c %u (0x%x)\n",
+                   p, header->is_hole == 1 ? 'F' : 'A', size, size);
+    header += header->size;
+  }
+  screen::puts("complete\n");
+}
+
 // static
 bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
   return a->size < b->size;
