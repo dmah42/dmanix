@@ -87,7 +87,7 @@ void MoveStack(void* new_stack, uint32_t size) {
 void Initialize() {
   asm volatile("cli");
 
-  MoveStack((void*) 0xE0000000, 0x4000);
+  MoveStack((void*) 0xE0000000, 0x2000);
 
   // Initialize the first (kernel) task
   // TODO: Task ctor.
@@ -96,14 +96,14 @@ void Initialize() {
   current->esp = current->ebp = 0;
   current->eip = 0;
   current->directory = paging::current_directory;
-  current->next = 0;
+  current->next = NULL;
 
   asm volatile("sti");
 }
 
 void Shutdown() {
   Task* it = queue;
-  while (it != 0) {
+  while (it != NULL) {
     Task* next = it->next;
     it->~Task();
     kfree(it);
@@ -126,13 +126,12 @@ uint32_t Fork() {
   task->esp = task->ebp = 0;
   task->eip = 0;
   task->directory = directory;
-  // TODO: NULL
-  task->next = 0;
+  task->next = NULL;
 
   // add to the end of the queue
   // TODO: track the end of the list
   Task* it = (Task*) queue;
-  while (it->next != 0)
+  while (it->next != NULL)
     it = it->next;
   it->next = task;
 
@@ -188,8 +187,11 @@ void Switch() {
   if (current == 0)
     current = queue;
 
+  eip = current->eip;
   esp = current->esp;
   ebp = current->ebp;
+
+  paging::current_directory = current->directory;
 
   // - Stop interrupts
   // - Put eip into ecx

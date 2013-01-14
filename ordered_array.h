@@ -67,11 +67,11 @@ void OrderedArray<T>::Insert(const T& item) {
   if (iterator == size)
     array[size++] = item;
   else {
-    T& tmp = array[iterator];
+    T tmp = array[iterator];
     array[iterator] = item;
     while (iterator < size) {
       ++iterator;
-      const T& tmp2 = array[iterator];
+      const T tmp2 = array[iterator];
       array[iterator] = tmp;
       tmp = tmp2;
     }
@@ -83,9 +83,7 @@ void OrderedArray<T>::Insert(const T& item) {
 
 template<typename T>
 const T& OrderedArray<T>::Lookup(uint32_t i) const {
-  if (i >= size) {
-    PANIC("out of bounds");
-  }
+  ASSERT(i < size);
   return array[i];
 }
 

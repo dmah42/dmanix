@@ -90,9 +90,9 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
   // If we need to page align, make a new hole
   if (page_align && (orig_pos & 0xFFFFF000)) {
-    uint32_t new_location = orig_pos + 0x1000 - (orig_pos & 0xFFF) - sizeof(Header);
+    uint32_t new_location = orig_pos + 0x1000 - (orig_pos & 0x0FFF) - sizeof(Header);
     Header* hole_header = (Header*) orig_pos;
-    hole_header->size = 0x1000 - (orig_pos&0xFFF) - sizeof(Header);
+    hole_header->size = 0x1000 - (orig_pos & 0x0FFF) - sizeof(Header);
     hole_header->magic = HEAP_MAGIC;
     hole_header->is_hole = 1;
 
@@ -137,9 +137,9 @@ void Heap::Free(void* p) {
     return;
 
   Header* header = (Header*) ((uint32_t) p - sizeof(Header));
-  Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
-
   ASSERT(header->magic == HEAP_MAGIC);
+
+  Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
   ASSERT(footer->magic == HEAP_MAGIC);
   ASSERT(footer->size == header->size);
 
@@ -175,7 +175,6 @@ void Heap::Free(void* p) {
   }
 
   // Can we contract?
-  /*
   if ((uint32_t)footer + sizeof(Footer) == end_address) {
     uint32_t old_length = end_address - start_address;
     uint32_t new_length = Contract((uint32_t)header - start_address);
@@ -186,12 +185,12 @@ void Heap::Free(void* p) {
       footer->header = header;
     } else {
       uint32_t iterator = 0;
-      while ((iterator < index.size()) && (index.Lookup(iterator) != test_header))
+      while ((iterator < index.get_size()) && (index.Lookup(iterator) != test_header))
         ++iterator;
-      if (iterator < index.size())
+      if (iterator < index.get_size())
         index.Remove(iterator);
     }
-  }*/
+  }
 
   if (do_add)
     index.Insert(header);

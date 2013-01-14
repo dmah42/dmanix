@@ -6,8 +6,8 @@ copy_page_physical:
   pushf                 ; push eflags so we can pop it and reenable
                         ; interrupts later, if they were enabled
   cli                   ; disable interrupts
-  mov   ebx, [esp + 16] ; source address
-  mov   ecx, [esp + 12] ; destination address
+  mov   ebx, [esp + 12] ; source address
+  mov   ecx, [esp + 16] ; destination address
 
   mov   edx, cr0        ; control register
   and   edx, 0x7FFFFFFF ; and

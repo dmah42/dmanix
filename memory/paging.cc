@@ -163,7 +163,6 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == NULL && make) {
     uint32_t tmp;
-    // TODO: Surely this must never come from the heap?
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
     dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;
@@ -224,7 +223,7 @@ void Shutdown() {
 
 uint32_t GetPhysicalAddress(uint32_t address) {
   Page* page = GetPage(address, false, kernel_directory);
-  return page->frame * 0x1000 + (address & 0xFFF);
+  return FRAME_TO_ADDR(page->frame) + (address & 0x0FFF);
 }
 
 Directory::Directory() : physicalAddress(0) {
@@ -251,7 +250,7 @@ Directory* Directory::Clone() {
   dir->physicalAddress = phys + offset;
 
   // Copy the page table
-  for (uint32_t i = 0; i < 1024; ++i) {
+  for (uint32_t i = 0; i < ARRAY_SIZE(tables); ++i) {
     if (tables[i] == 0)
       continue;
     if (kernel_directory->tables[i] == tables[i]) {
@@ -273,7 +272,7 @@ Table* Table::Clone(uint32_t* physical) {
   void* table_mem = kalloc_pa(sizeof(Table), physical);
   Table* table = new (table_mem) Table();
 
-  for (uint32_t i = 0; i < 1024; ++i) {
+  for (uint32_t i = 0; i < ARRAY_SIZE(pages); ++i) {
     if (pages[i].frame == 0)
       continue;
     AllocFrame(&table->pages[i], false, false);
@@ -284,8 +283,8 @@ Table* Table::Clone(uint32_t* physical) {
     table->pages[i].accessed = pages[i].accessed;
     table->pages[i].dirty = pages[i].dirty;
     // Copy the data across. See process.s.
-    copy_page_physical(table->pages[i].frame * 0x1000,
-                       pages[i].frame * 0x1000);
+    copy_page_physical(FRAME_TO_ADDR(pages[i].frame),
+                       FRAME_TO_ADDR(table->pages[i].frame));
   }
   return table;
 }
