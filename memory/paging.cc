@@ -163,6 +163,7 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == NULL && make) {
     uint32_t tmp;
+    // TODO: Surely this must never come from the heap?
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
     dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;
