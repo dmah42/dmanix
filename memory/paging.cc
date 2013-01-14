@@ -107,7 +107,7 @@ void SwitchPageDirectory(Directory* dir) {
   asm volatile("mov %0, %%cr0" : : "r" (cr0));
 }
 
-void PageFault(const isr::Registers& regs) {
+void PageFault(isr::Registers& regs) {
   uint32_t faulting_address;
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 

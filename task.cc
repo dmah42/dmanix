@@ -6,11 +6,17 @@
 #include "memory/memory.h"
 #include "memory/paging.h"
 
+#define KERNEL_STACK_SIZE 2048
+
 // from boot.s
 extern "C" uint32_t stack;
 
 // from process.s
 extern "C" uint32_t read_eip();
+
+namespace dt {
+extern void SetKernelStack(uint32_t stack);
+}
 
 namespace paging {
 struct Page;
@@ -42,6 +48,7 @@ struct Task {
   uint32_t pid;
   uint32_t esp, ebp;
   uint32_t eip;
+  uint32_t stack;  // kernel stack location
   paging::Directory* directory;
   Task* next;
 };
@@ -108,6 +115,7 @@ void Initialize() {
   // Initialize the first (kernel) task
   void* current_mem = kalloc(sizeof(Task));
   current = new (current_mem) Task(paging::current_directory);
+  current->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
   queue = current;
 
   asm volatile("sti");
@@ -135,6 +143,8 @@ uint32_t Fork() {
   // TODO: clean these tasks up once they complete.
   void* task_mem = kalloc(sizeof(Task));
   Task* task = new (task_mem) Task(directory);
+  // BUG: Should this be current->stack?
+  task->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
 
   // add to the end of the queue
   // TODO: track the end of the list
@@ -199,6 +209,8 @@ void Switch() {
 
   paging::current_directory = current->directory;
 
+  dt::SetKernelStack(current->stack + KERNEL_STACK_SIZE);
+
   // - Stop interrupts
   // - Put eip into ecx
   // - load stack and base from the new task
@@ -223,6 +235,35 @@ void Switch() {
 
 uint32_t PID() {
   return current->pid;
+}
+
+void UserMode() {
+  dt::SetKernelStack(current->stack + KERNEL_STACK_SIZE);
+  // Set up a stack structure for switching to user mode.
+  // 0x23 is user mode data segment selector (0x20 | 0x3) and 0x1B is user mode
+  // code segment selector (0x18 | 0x3).
+  // push $1f pushes the address of the 1: label.
+  // TODO: enable interrupts safely:
+  //
+  // pop %eax;         
+  // or %eax, $0x200;  
+  // push %eax;        
+  asm volatile("        \
+      cli;              \
+      mov $0x23, %ax;   \
+      mov %ax, %ds;     \
+      mov %ax, %es;     \
+      mov %ax, %fs;     \
+      mov %ax, %gs;     \
+                        \
+      mov %esp, %eax;   \
+      pushl $0x23;      \
+      pushl %eax;       \
+      pushf;            \
+      pushl $0x1B;      \
+      push $1f;         \
+      iret;             \
+      1:");
 }
 
 }  // namespace task

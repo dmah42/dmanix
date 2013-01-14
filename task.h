@@ -12,6 +12,8 @@ uint32_t Fork();
 void Switch();
 uint32_t PID();
 
+void UserMode();
+
 }
 
 #endif  // TASK_H

@@ -31,7 +31,7 @@ struct Registers {
   uint32_t eip, cs, eflags, useresp, ss;
 };
 
-typedef void (*Handler)(const Registers&);
+typedef void (*Handler)(Registers&);
 void RegisterHandler(Interrupt interrupt, Handler h);
 
 }

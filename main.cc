@@ -6,6 +6,7 @@
 #include "memory/paging.h"
 #include "multiboot.h"
 #include "screen.h"
+#include "syscall.h"
 #include "task.h"
 #include "timer.h"
 
@@ -26,6 +27,14 @@ extern uint32_t base_address;
 extern Heap* kheap;
 
 namespace test {
+
+  void fork() {
+    // create a new process in a new address space which is a clone
+    uint32_t ret = task::Fork();
+    screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
+                   ret, task::PID());
+    screen::puts("=========================================\n");
+  }
 
   void vga() {
     screen::puts("0         1         2         3         4         5         6         7       \n");
@@ -187,6 +196,10 @@ namespace test {
     asm volatile("sti");
   }
 
+  void user_mode() {
+    task::UserMode();
+    syscall::_puts("User mode syscall\n");
+  }
 }  // namespace test
 
 int main() {
@@ -219,19 +232,23 @@ int main() {
 
   fs::root = initrd::Initialize(mod[0]);
 
+  syscall::Initialize();
+
   // create a new process in a new address space which is a clone
   uint32_t ret = task::Fork();
   screen::Printf("Fork returned 0x%x and PID() returned 0x%x\n",
                  ret, task::PID());
   screen::puts("=========================================\n");
 
+  // test::fork();
   // test::vga();
   // test::colors();
   // test::interrupt();
   // test::timer();
   // test::page_fault();
   test::memory();
-  //test::initrd();
+  // test::initrd();
+  test::user_mode();
 
   // TODO: Launch executables
 
