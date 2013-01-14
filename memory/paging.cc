@@ -15,7 +15,8 @@ extern uint32_t base_address;
 extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 
 #define KHEAP_START         0xC0000000
-#define KHEAP_INITIAL_SIZE  0x100000
+// 4Mb initial heap
+#define KHEAP_INITIAL_SIZE  0x00400000
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
 #define KHEAP_MAX           0xCFFFF000
 
@@ -162,6 +163,7 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == NULL && make) {
     uint32_t tmp;
+    // TODO: Surely this must never come from the heap?
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
     dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;

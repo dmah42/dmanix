@@ -47,7 +47,7 @@ void kfree(void* p) {
   if (kheap != NULL) {
     if (p == kheap)
       kheap = NULL;
-    else
+    else if (kheap->Owns(p))
       kheap->Free(p);
   }
 }

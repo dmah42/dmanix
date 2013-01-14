@@ -25,10 +25,10 @@ align 4
   dd MBOOT_CHECKSUM
 
 ; reserve initial stack space
-STACKSIZE equ 0x4000  ; 16kb
+; STACKSIZE equ 0x4000  ; 16kb
 
 start:
-  mov   esp, stack + STACKSIZE
+  ; mov   esp, stack + STACKSIZE
   mov   [mbmagic], eax
   mov   [mbd], ebx
   mov   [stack], esp
@@ -66,4 +66,4 @@ section .bss
 align 4
 mbmagic:  resd 1
 mbd:      resd 1
-stack:    resb STACKSIZE
+stack:    resb 1
