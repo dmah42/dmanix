@@ -163,7 +163,6 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 
   if (dir->tables[table_index] == NULL && make) {
     uint32_t tmp;
-    // TODO: Surely this must never come from the heap?
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
     dir->tables[table_index] = new (table_mem) Table();
     dir->physical[table_index] = tmp | 0x7;
@@ -233,7 +232,7 @@ Directory::Directory() : physicalAddress(0) {
 }
 
 Directory::~Directory() {
-  for (uint32_t i = 0; i < 1024; ++i) {
+  for (uint32_t i = 0; i < ARRAY_SIZE(tables); ++i) {
     if (tables[i] != 0) {
       tables[i]->~Table();
       kfree(tables[i]);
@@ -286,69 +285,6 @@ Table* Table::Clone(uint32_t* physical) {
     // Copy the data across. See process.s.
     copy_page_physical(FRAME_TO_ADDR(pages[i].frame),
                        FRAME_TO_ADDR(table->pages[i].frame));
-  }
-  return table;
-}
-
-Directory::Directory() : physicalAddress(0) {
-  memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-  memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
-}
-
-Directory::~Directory() {
-  for (uint32_t i = 0; i < 1024; ++i) {
-    if (tables[i] != 0) {
-      tables[i]->~Table();
-      kfree(tables[i]);
-    }
-  }
-}
-
-Directory* Directory::Clone() {
-  uint32_t phys;
-  void* dir_mem = kalloc_pa(sizeof(Directory), &phys);
-  Directory* dir = new (dir_mem) Directory();
-
-  // Get offset of physical table
-  uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
-  dir->physicalAddress = phys + offset;
-
-  // Copy the page table
-  for (uint32_t i = 0; i < 1024; ++i) {
-    if (tables[i] == 0)
-      continue;
-    if (kernel_directory->tables[i] == tables[i]) {
-      // In the kernel - use the same pointer
-      dir->tables[i] = tables[i];
-      dir->physical[i] = physical[i];
-    } else {
-      // Copy the table
-      uint32_t phys;
-      dir->tables[i] = tables[i]->Clone(&phys);
-      dir->physical[i] = phys | 0x7; // TODO: better flags
-    }
-  }
-
-  return dir;
-}
-
-Table* Table::Clone(uint32_t* physical) {
-  void* table_mem = kalloc_pa(sizeof(Table), physical);
-  Table* table = new (table_mem) Table();
-
-  for (uint32_t i = 0; i < 1024; ++i) {
-    if (pages[i].frame == 0)
-      continue;
-    AllocFrame(&table->pages[i], false, false);
-    // TODO: copy ctor
-    table->pages[i].present = pages[i].present;
-    table->pages[i].rw = pages[i].rw;
-    table->pages[i].user = pages[i].user;
-    table->pages[i].accessed = pages[i].accessed;
-    table->pages[i].dirty = pages[i].dirty;
-    // Copy the data across. See process.s.
-    copy_page_physical(table->pages[i].frame * 0x1000,
-                       pages[i].frame * 0x1000);
   }
   return table;
 }
