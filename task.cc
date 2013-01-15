@@ -2,9 +2,9 @@
 
 #include <new>
 
-#include "kalloc.h"
-#include "memory.h"
-#include "paging.h"
+#include "memory/kalloc.h"
+#include "memory/memory.h"
+#include "memory/paging.h"
 
 // from boot.s
 extern "C" uint32_t stack;
