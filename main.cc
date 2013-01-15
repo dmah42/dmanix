@@ -221,13 +221,7 @@ int main() {
 
   // create a new process in a new address space which is a clone
   uint32_t ret = task::Fork();
-  screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
-                 ret, task::PID());
-  screen::puts("=========================================\n");
-
-  // create a new process in a new address space which is a clone
-  uint32_t ret = task::Fork();
-  screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
+  screen::Printf("Fork returned 0x%x and PID() returned 0x%x\n",
                  ret, task::PID());
   screen::puts("=========================================\n");
 
@@ -236,7 +230,7 @@ int main() {
   // test::interrupt();
   // test::timer();
   // test::page_fault();
-   test::memory();
+  test::memory();
   //test::initrd();
 
   // TODO: Launch executables
