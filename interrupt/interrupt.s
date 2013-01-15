@@ -19,25 +19,25 @@
     jmp   isr_common_stub
 %endmacro
 
-ISR_NOERRCODE 0
-ISR_NOERRCODE 1
-ISR_NOERRCODE 2
-ISR_NOERRCODE 3
-ISR_NOERRCODE 4
-ISR_NOERRCODE 5
-ISR_NOERRCODE 6
-ISR_NOERRCODE 7
-ISR_ERRCODE   8
-ISR_NOERRCODE 9
-ISR_ERRCODE   10
-ISR_ERRCODE   11
-ISR_ERRCODE   12
-ISR_ERRCODE   13
-ISR_ERRCODE   14
-ISR_NOERRCODE 15
-ISR_NOERRCODE 16
-ISR_NOERRCODE 17
-ISR_NOERRCODE 18
+ISR_NOERRCODE 0     ; div zero
+ISR_NOERRCODE 1     ; debug
+ISR_NOERRCODE 2     ; non maskable
+ISR_NOERRCODE 3     ; breakpoint
+ISR_NOERRCODE 4     ; into detected overflow
+ISR_NOERRCODE 5     ; out of bounds
+ISR_NOERRCODE 6     ; invalid opcode
+ISR_NOERRCODE 7     ; no coprocessor
+ISR_ERRCODE   8     ; double fault
+ISR_NOERRCODE 9     ; coprocessor segment overrun
+ISR_ERRCODE   10    ; bad tss
+ISR_ERRCODE   11    ; segment not present
+ISR_ERRCODE   12    ; stack fault
+ISR_ERRCODE   13    ; general protection fault
+ISR_ERRCODE   14    ; page fault
+ISR_NOERRCODE 15    ; unknown interrupt
+ISR_NOERRCODE 16    ; coprocessor fault
+ISR_NOERRCODE 17    ; alignment check
+ISR_NOERRCODE 18    ; machine check
 ISR_NOERRCODE 19
 ISR_NOERRCODE 20
 ISR_NOERRCODE 21
@@ -51,6 +51,7 @@ ISR_NOERRCODE 28
 ISR_NOERRCODE 29
 ISR_NOERRCODE 30
 ISR_NOERRCODE 31
+ISR_NOERRCODE 128   ; syscall
 
 extern isr_handler
 

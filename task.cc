@@ -144,7 +144,7 @@ uint32_t Fork() {
   void* task_mem = kalloc(sizeof(Task));
   Task* task = new (task_mem) Task(directory);
   // BUG: Should this be current->stack?
-  task->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
+  current->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
 
   // add to the end of the queue
   // TODO: track the end of the list
