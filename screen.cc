@@ -93,7 +93,7 @@ void puts(const char* s) {
 }
 
 void puth(uint32_t hex) {
-  for (int i = 28; i > 0; i -= 4) {
+  for (int i = 28; i >= 0; i -= 4) {
     const uint8_t h = (hex >> i) & 0xf;
     if (h >= 0xA) {
       putc(h - 0xA + 'A');
