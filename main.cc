@@ -202,7 +202,6 @@ int main() {
   base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
-
   paging::Initialize();
 
   asm volatile("sti");

@@ -1,3 +1,7 @@
+#include "task.h"
+
+#include <new>
+
 #include "kalloc.h"
 #include "memory.h"
 #include "paging.h"
@@ -22,10 +26,19 @@ namespace task {
 namespace {
 
 struct Task {
+  explicit Task(paging::Directory* directory)
+      : pid(next_pid++),
+        esp(0), ebp(0), eip(0),
+        directory(directory),
+        next(NULL) {
+  }
   ~Task() {
     directory->~Directory();
     kfree(directory);
   }
+
+  static uint32_t next_pid;
+
   uint32_t pid;
   uint32_t esp, ebp;
   uint32_t eip;
@@ -36,7 +49,8 @@ struct Task {
 Task* volatile current;
 Task* volatile queue;
 
-uint32_t next_pid = 1;
+// static
+uint32_t Task::next_pid = 1U;
 
 void MoveStack(void* new_stack, uint32_t size) {
   for (uint32_t i = (uint32_t) new_stack;
@@ -51,9 +65,10 @@ void MoveStack(void* new_stack, uint32_t size) {
   asm volatile("mov %0, %%cr3" : : "r" (pd_addr));
 
   uint32_t old_stack_ptr;
-  asm volatile("mov %%esp, %0" : "=r" (old_stack_ptr));
   uint32_t old_base_ptr;
-  asm volatile("mov %%ebp, %0" : "=r" (old_base_ptr));
+  asm volatile("mov %%esp, %0; \
+                mov %%ebp, %1"
+                : "=r" (old_stack_ptr), "=r" (old_base_ptr));
 
   uint32_t offset = (uint32_t) new_stack - stack;
   uint32_t new_stack_ptr = old_stack_ptr + offset;
@@ -78,8 +93,9 @@ void MoveStack(void* new_stack, uint32_t size) {
   }
 
   // change stacks
-  asm volatile("mov %0, %%esp" : : "r" (new_stack_ptr));
-  asm volatile("mov %0, %%ebp" : : "r" (new_base_ptr));
+  asm volatile("mov %0, %%esp; \
+                mov %1, %%ebp"
+                : : "r" (new_stack_ptr), "r" (new_base_ptr));
 }
 
 }  // namespace
@@ -90,13 +106,9 @@ void Initialize() {
   MoveStack((void*) 0xE0000000, 0x2000);
 
   // Initialize the first (kernel) task
-  // TODO: Task ctor.
-  current = queue = (Task*) kalloc(sizeof(Task));
-  current->pid = next_pid++;
-  current->esp = current->ebp = 0;
-  current->eip = 0;
-  current->directory = paging::current_directory;
-  current->next = NULL;
+  void* current_mem = kalloc(sizeof(Task));
+  current = new (current_mem) Task(paging::current_directory);
+  queue = current;
 
   asm volatile("sti");
 }
@@ -120,13 +132,9 @@ uint32_t Fork() {
   paging::Directory* directory = paging::current_directory->Clone();
 
   // New process
-  // TODO: ctor
-  Task* task = (Task*) kalloc(sizeof(Task));
-  task->pid = next_pid++;
-  task->esp = task->ebp = 0;
-  task->eip = 0;
-  task->directory = directory;
-  task->next = NULL;
+  // TODO: clean these tasks up once they complete.
+  void* task_mem = kalloc(sizeof(Task));
+  Task* task = new (task_mem) Task(directory);
 
   // add to the end of the queue
   // TODO: track the end of the list
@@ -141,15 +149,14 @@ uint32_t Fork() {
   if (current == parent) {
     // we are the parent
     uint32_t esp, ebp;
-    asm volatile(
-        "mov %%esp, %0;  \
-         mov %%ebp, %1"
-        : "=r" (esp), "=r" (ebp));
+    asm volatile("mov %%esp, %0;  \
+                  mov %%ebp, %1"
+                 : "=r" (esp), "=r" (ebp));
     task->esp = esp;
     task->ebp = ebp;
     task->eip = eip;
-
     asm volatile("sti");
+
     return task->pid;
   }
   return 0;
@@ -161,10 +168,9 @@ void Switch() {
     return;
 
   uint32_t esp, ebp;
-  asm volatile(
-      "mov %%esp, %0;  \
-       mov %%ebp, %1"
-      : "=r" (ebp), "=r" (esp));
+  asm volatile("mov %%esp, %0;  \
+                mov %%ebp, %1"
+               : "=r" (esp), "=r" (ebp));
 
   // Read the instruction pointer.
   // Once this method exits, we could be in one of two states:
@@ -184,7 +190,7 @@ void Switch() {
 
   // get the next task
   current = current->next;
-  if (current == 0)
+  if (current == NULL)
     current = queue;
 
   eip = current->eip;
