@@ -234,11 +234,9 @@ int main() {
 
   syscall::Initialize();
 
-  test::fork();
+  // test::fork();
   // test::vga();
-  asm volatile ("cli");
-  test::colors();
-  asm volatile ("sti");
+  // test::colors();
   // test::interrupt();
   // test::timer();
   // test::page_fault();
@@ -259,6 +257,7 @@ int main() {
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Goodbye.\n");
 
+  // Loop forever instead of exiting to halt.
   for (;;);
   return 0;
 }
