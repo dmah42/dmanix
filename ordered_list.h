@@ -14,10 +14,10 @@ class OrderedList {
  public:
   typedef bool (*Predicate)(const T&, const T&);
   
-//  OrderedList(void* array, uint32_t capacity, Predicate predicate);
-  static OrderedList Create(void* array,
-                            uint32_t capacity,
-                            Predicate predicate);
+  OrderedList(void* array, uint32_t capacity, Predicate predicate);
+//  static OrderedList Create(void* array,
+//                            uint32_t capacity,
+//                            Predicate predicate);
 
   void Insert(const T& item);
   const T& Lookup(uint32_t i) const;
@@ -35,6 +35,7 @@ class OrderedList {
 
 // static
 // TODO: specialize for pointer type
+/*
 template<typename T>
 OrderedList<T> OrderedList<T>::Create(void* array,
                                       uint32_t capacity,
@@ -47,16 +48,16 @@ OrderedList<T> OrderedList<T>::Create(void* array,
   list.predicate = predicate;
   return list;
 }
+*/
 
-//template<typename T>
-//OrderedList<T>::OrderedList(void* array, uint32_t capacity, Predicate predicate)
-//    : array_((T*) array),
-//      predicate_(predicate),
-//      size_(0),
-//      capacity_(capacity) {
-//  for (uint32_t i = 0; i < capacity; ++i)
-//    array_[i] = T();
-//}
+template<typename T>
+OrderedList<T>::OrderedList(void* array, uint32_t capacity, Predicate predicate)
+    : array((T*) array),
+      predicate(predicate),
+      size(0),
+      capacity(capacity) {
+  memory::set(array, 0, capacity * sizeof(T));
+}
 
 template<typename T>
 void OrderedList<T>::Insert(const T& item) {

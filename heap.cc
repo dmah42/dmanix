@@ -9,9 +9,6 @@
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
                    bool supervisor, bool readonly) {
-  ASSERT(start%0x1000 == 0);
-  ASSERT(end_addr%0x1000 == 0);
-
   void* heap_mem = kalloc(sizeof(Heap));
   return new (heap_mem) Heap(start, end_addr, max, supervisor, readonly);
 }
@@ -190,12 +187,14 @@ bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
 
 Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
            bool supervisor, bool readonly)
-    : index(OrderedList<Header*>::Create(
-          (void*) start, HEAP_INDEX_SIZE, HeaderLessThan)),
+    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
       end_address(end_addr),
       max_address(max),
       supervisor(supervisor),
       readonly(readonly) {
+  ASSERT(start%0x1000 == 0);
+  ASSERT(end_addr%0x1000 == 0);
+
   // Allow for index array.
   start += sizeof(Header*) * HEAP_INDEX_SIZE;
   if ((start & 0xFFFFF000) != 0) {
