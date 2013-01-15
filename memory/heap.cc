@@ -51,6 +51,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
       Footer* footer = (Footer*) (old_end_address + header->size - sizeof(Footer));
       footer->magic = HEAP_MAGIC;
       footer->header = header;
+
       index.Insert(header);
     } else {
       // Adjust the last header
@@ -86,6 +87,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
     Footer* hole_footer = (Footer*) ((uint32_t)new_location - sizeof(Footer));
     hole_footer->magic = HEAP_MAGIC;
     hole_footer->header = hole_header;
+
     orig_pos = new_location;
     orig_size = orig_size - hole_header->size;
   } else {
@@ -125,8 +127,9 @@ void Heap::Free(void* p) {
   Header* header = (Header*) ((uint32_t) p - sizeof(Header));
   Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
 
-  if (header->magic != HEAP_MAGIC) PANIC("heap corrupted");
-  if (footer->magic != HEAP_MAGIC) PANIC("heap corrupted");
+  ASSERT(header->magic == HEAP_MAGIC);
+  ASSERT(footer->magic == HEAP_MAGIC);
+  ASSERT(footer->header == header);
 
   header->is_hole = 1;
 
@@ -182,17 +185,18 @@ void Heap::Free(void* p) {
 
 void Heap::Dump() {
   screen::puts("Dumping Heap...\n");
-  Header* header = (Header*) start_address;
-  while ((uint32_t) header < end_address) {
+  uint32_t header_addr = start_address;
+  while (header_addr < end_address) {
+    Header* header = (Header*) header_addr;
     ASSERT(header->magic == HEAP_MAGIC);
-    uint32_t p = (uint32_t) header + sizeof(Header);
-    Footer* f = (Footer*)((uint32_t) header + header->size - sizeof(Footer));
+    Footer* f = (Footer*)(header_addr + header->size - sizeof(Footer));
     ASSERT(f->magic == HEAP_MAGIC);
     ASSERT(f->header == header);
     uint32_t size = header->size - (sizeof(Header) + sizeof(Footer));
+    uint32_t p = header_addr + sizeof(Header);
     screen::Printf("  0x%x %c %u (0x%x)\n",
                    p, header->is_hole == 1 ? 'F' : 'A', size, size);
-    header += header->size;
+    header_addr += header->size;
   }
   screen::puts("complete\n");
 }
@@ -224,6 +228,11 @@ Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
   hole->size = end_addr - start;
   hole->magic = HEAP_MAGIC;
   hole->is_hole = 1;
+
+  Footer* hole_footer = (Footer*) (((uint32_t) hole) + hole->size - sizeof(Footer));
+  hole_footer->magic = HEAP_MAGIC;
+  hole_footer->header = hole;
+
   index.Insert(hole);
 }
 
