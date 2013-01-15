@@ -191,7 +191,7 @@ namespace test {
 
 int main() {
   dt::Initialize();
-  screen::Clear();
+  //screen::Clear();
 
   //multiboot::Dump();
 
@@ -217,9 +217,7 @@ int main() {
   screen::puts("NIX\n");
   screen::ResetColor();
 
-  screen::puts("initializing initrd\n");
   fs::root = initrd::Initialize(mod[0]);
-  screen::puts("done\n");
 
   // create a new process in a new address space which is a clone
   uint32_t ret = task::Fork();
