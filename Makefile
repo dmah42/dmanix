@@ -4,17 +4,10 @@ CC = g++
 AS = nasm
 LD = ld
 
-# TODO: Use wildcard for dir, exclude tools.
-CC_SOURCES := $(wildcard *.cc) 						\
-							$(wildcard base/*.cc) 			\
-							$(wildcard fs/*.cc) 				\
-							$(wildcard interrupt/*.cc) 	\
-							$(wildcard memory/*.cc)
-AS_SOURCES := $(wildcard *.s) 						\
-							$(wildcard base/*.s) 				\
-							$(wildcard fs/*.s) 					\
-							$(wildcard interrupt/*.s) 	\
-							$(wildcard memory/*.s)
+CC_SOURCES := $(wildcard *.cc) $(wildcard */*.cc)
+CC_SOURCES := $(filter-out $(wildcard tools/*.cc), $(CC_SOURCES))
+AS_SOURCES := $(wildcard *.s) $(wildcard */*.s)
+AS_SOURCES := $(filter-out $(wildcard tools/*.s), $(AS_SOURCES))
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 AS_OBJECTS := $(addprefix $(OBJDIR)/,$(AS_SOURCES:.s=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
