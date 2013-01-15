@@ -1,5 +1,5 @@
-#ifndef ORDERED_LIST_H
-#define ORDERED_LIST_H
+#ifndef ORDERED_ARRAY_H
+#define ORDERED_ARRAY_H
 
 #include "assert.h"
 #include "kalloc.h"
@@ -10,12 +10,12 @@ template<typename T>
 bool DefaultPredicate(const T& a, const T& b) { return a < b; }
 
 template<typename T>
-class OrderedList {
+class OrderedArray {
  public:
   typedef bool (*Predicate)(const T&, const T&);
   
-  OrderedList(void* array, uint32_t capacity, Predicate predicate);
-//  static OrderedList Create(void* array,
+  OrderedArray(void* array, uint32_t capacity, Predicate predicate);
+//  static OrderedArray Create(void* array,
 //                            uint32_t capacity,
 //                            Predicate predicate);
 
@@ -37,10 +37,10 @@ class OrderedList {
 // TODO: specialize for pointer type
 /*
 template<typename T>
-OrderedList<T> OrderedList<T>::Create(void* array,
+OrderedArray<T> OrderedArray<T>::Create(void* array,
                                       uint32_t capacity,
                                       Predicate predicate) {
-  OrderedList<T> list;
+  OrderedArray<T> list;
   list.array = (T*) array;
   memory::set(array, 0, capacity * sizeof(T));
   list.size = 0;
@@ -51,7 +51,7 @@ OrderedList<T> OrderedList<T>::Create(void* array,
 */
 
 template<typename T>
-OrderedList<T>::OrderedList(void* array, uint32_t capacity, Predicate predicate)
+OrderedArray<T>::OrderedArray(void* array, uint32_t capacity, Predicate predicate)
     : array((T*) array),
       predicate(predicate),
       size(0),
@@ -60,7 +60,7 @@ OrderedList<T>::OrderedList(void* array, uint32_t capacity, Predicate predicate)
 }
 
 template<typename T>
-void OrderedList<T>::Insert(const T& item) {
+void OrderedArray<T>::Insert(const T& item) {
   uint32_t iterator = 0;
   while (iterator < size && predicate(array[iterator], item))
     ++iterator;
@@ -83,7 +83,7 @@ void OrderedList<T>::Insert(const T& item) {
 }
 
 template<typename T>
-const T& OrderedList<T>::Lookup(uint32_t i) const {
+const T& OrderedArray<T>::Lookup(uint32_t i) const {
   if (i >= size) {
     PANIC("out of bounds");
   }
@@ -91,7 +91,7 @@ const T& OrderedList<T>::Lookup(uint32_t i) const {
 }
 
 template<typename T>
-void OrderedList<T>::Remove(uint32_t i) {
+void OrderedArray<T>::Remove(uint32_t i) {
   while (i < size) {
     array[i] = array[i+1];
     ++i;
@@ -99,4 +99,4 @@ void OrderedList<T>::Remove(uint32_t i) {
   --size;
 }
 
-#endif  // ORDERED_LIST_H
+#endif  // ORDERED_ARRAY_H

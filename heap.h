@@ -1,7 +1,7 @@
 #ifndef KMALLOC_H
 #define KMALLOC_H
 
-#include "ordered_list.h"
+#include "ordered_array.h"
 
 class Heap {
  public:
@@ -34,7 +34,7 @@ class Heap {
   void Expand(uint32_t new_size);
   uint32_t Contract(uint32_t new_size);
 
-  OrderedList<Header*> index;
+  OrderedArray<Header*> index;
   uint32_t start_address;
   uint32_t end_address;
   uint32_t max_address;
