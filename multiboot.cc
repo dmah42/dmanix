@@ -1,6 +1,6 @@
 #include "multiboot.h"
 
-#include "assert.h"
+#include "base/assert.h"
 #include "screen.h"
 
 // from boot.s

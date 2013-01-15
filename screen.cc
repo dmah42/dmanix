@@ -2,8 +2,8 @@
 
 #include <stdarg.h>
 
-#include "assert.h"
-#include "io.h"
+#include "base/assert.h"
+#include "base/io.h"
 #include "memory/memory.h"
 
 #define NUM_ROWS 25

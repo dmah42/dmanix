@@ -1,10 +1,10 @@
 #include "dt.h"
+#include "fs/initrd.h"
 #include "fs/fs.h"
 #include "fs/node.h"
-#include "initrd.h"
 #include "memory/heap.h"
+#include "memory/paging.h"
 #include "multiboot.h"
-#include "paging.h"
 #include "screen.h"
 #include "timer.h"
 

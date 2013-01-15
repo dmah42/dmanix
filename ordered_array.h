@@ -1,7 +1,7 @@
 #ifndef ORDERED_ARRAY_H
 #define ORDERED_ARRAY_H
 
-#include "assert.h"
+#include "base/assert.h"
 #include "memory/kalloc.h"
 #include "memory/memory.h"
 #include "screen.h"
@@ -78,8 +78,7 @@ void OrderedArray<T>::Insert(const T& item) {
     ++size;
   }
 
-  if (size >= capacity)
-    PANIC("Ordered list at capacity");
+  ASSERT(size < capacity);
 }
 
 template<typename T>

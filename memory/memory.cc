@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "assert.h"
+#include "base/assert.h"
 
 namespace memory {
 namespace {

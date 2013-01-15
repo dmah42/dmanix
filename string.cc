@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "assert.h"
+#include "base/assert.h"
 
 namespace string {
 
