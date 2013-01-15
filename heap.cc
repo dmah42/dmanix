@@ -1,5 +1,7 @@
 #include "heap.h"
 
+#include <new>
+
 #define HEAP_INDEX_SIZE     0x20000
 #define HEAP_MAGIC          0x0ABBCCD0
 #define HEAP_MIN_SIZE       0x70000
@@ -11,31 +13,7 @@ Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
   ASSERT(end_addr%0x1000 == 0);
 
   void* heap_mem = kalloc(sizeof(Heap));
-  Heap* heap = (Heap*) heap_mem;
-
-  //return new(kalloc(sizeof(Heap))) Heap(start, end_addr, max, supervisor, readonly);
-  
-  heap->index = OrderedList<Header*>::Create((void*) start,
-                                             HEAP_INDEX_SIZE,
-                                             HeaderLessThan);
-  // Allow for index array.
-  start += sizeof(Header*) * HEAP_INDEX_SIZE;
-  if ((start & 0xFFFFF000) != 0) {
-    start &= 0xFFFFF000;
-    start += 0x1000;
-  }
-  heap->start_address = start;
-  heap->end_address = end_addr;
-  heap->max_address = max;
-  heap->supervisor = supervisor;
-  heap->readonly = readonly;
-
-  Header* hole = (Header*) start;
-  hole->size = end_addr - start;
-  hole->magic = HEAP_MAGIC;
-  hole->is_hole = 1;
-  heap->index.Insert(hole);
-  return heap;
+  return new (heap_mem) Heap(start, end_addr, max, supervisor, readonly);
 }
 
 // static
@@ -210,27 +188,28 @@ bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
   return a->size < b->size;
 }
 
-// TODO
-//Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max, bool supervisor, bool readonly)
-//    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
-//      end_address(end_addr),
-//      max_address(max),
-//      supervisor(supervisor),
-//      readonly(readonly) {
-//  // Allow for index array.
-//  start += sizeof(Header*) * HEAP_INDEX_SIZE;
-//  if ((start & 0xFFFFF000) != 0) {
-//    start &= 0xFFFFF000;
-//    start += 0x1000;
-//  }
-//  start_address = start;
-//
-//  Header* hole = (Header*) start;
-//  hole->size = end_addr - start;
-//  hole->magic = HEAP_MAGIC;
-//  hole->is_hole = 1;
-//  index.Insert(hole);
-//}
+Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
+           bool supervisor, bool readonly)
+    : index(OrderedList<Header*>::Create(
+          (void*) start, HEAP_INDEX_SIZE, HeaderLessThan)),
+      end_address(end_addr),
+      max_address(max),
+      supervisor(supervisor),
+      readonly(readonly) {
+  // Allow for index array.
+  start += sizeof(Header*) * HEAP_INDEX_SIZE;
+  if ((start & 0xFFFFF000) != 0) {
+    start &= 0xFFFFF000;
+    start += 0x1000;
+  }
+  start_address = start;
+
+  Header* hole = (Header*) start;
+  hole->size = end_addr - start;
+  hole->magic = HEAP_MAGIC;
+  hole->is_hole = 1;
+  index.Insert(hole);
+}
 
 Heap::~Heap() {
   // Ensure everything has been freed.

@@ -26,8 +26,8 @@ class Heap {
 
   static bool HeaderLessThan(Header* const& a, Header* const& b);
 
-//  Heap(uint32_t start, uint32_t end, uint32_t max,
-//       bool supervisor, bool readonly);
+  Heap(uint32_t start, uint32_t end, uint32_t max,
+       bool supervisor, bool readonly);
   ~Heap();
 
   int32_t FindSmallestHole(uint32_t size, bool page_align) const;
