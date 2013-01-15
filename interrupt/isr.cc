@@ -22,9 +22,9 @@ void isr_handler(isr::Registers regs) {
     isr::handlers[regs.int_no](regs);
   else {
     screen::SetColor(COLOR_BLACK, COLOR_DARK_GREEN);
-    screen::puts("UNHANDLED INTERRUPT\n");
+    screen::puts("UNHANDLED INTERRUPT: ");
     screen::SetColor(COLOR_WHITE, COLOR_BLACK);
-    screen::Printf(" DS:\t0x%x\n", regs.ds);
+    screen::Printf("\n DS:\t0x%x\n", regs.ds);
     screen::Printf(" EDI:\t0x%x ESI:\t0x%x EBP:\t0x%x ESP:\t0x%x\n",
                    regs.edi, regs.esi, regs.ebp, regs.esp);
     screen::Printf(" EBX:\t0x%x EDX:\t0x%x ECX:\t0x%x EAX:\t0x%x\n",

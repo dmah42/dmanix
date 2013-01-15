@@ -3,7 +3,7 @@
 #include "interrupt/isr.h"
 #include "memory/memory.h"
 
-// Defined in asm.
+// Defined in interrupt.s and irq.s
 extern "C" {
 
 extern void gdt_flush(uint32_t);
@@ -42,6 +42,7 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
+extern void isr128();
 
 extern void irq0();
 extern void irq1();
@@ -66,7 +67,7 @@ namespace dt {
 namespace {
 
 enum Segment {
-  SEGMENT_NULL,
+  SEGMENT_NULL = 0,
   SEGMENT_CODE,
   SEGMENT_DATA,
   SEGMENT_USER_CODE,
@@ -161,8 +162,7 @@ void SetIDTGate(isr::Interrupt interrupt, uint32_t base, uint16_t sel,
   idt_entries[interrupt].sel = sel;
   idt_entries[interrupt].always0 = 0;
 
-  // TODO: uncomment the OR when we are using user-mode.
-  idt_entries[interrupt].flags = flags /* | 0x60 */;
+  idt_entries[interrupt].flags = flags | 0x60;
 }
 
 void WriteTSS(uint16_t ss0, uint32_t esp0) {
@@ -289,6 +289,7 @@ void InitIDT() {
   SetIDTGate(29, (uint32_t)isr29, 0x08, 0x8E);
   SetIDTGate(30, (uint32_t)isr30, 0x08, 0x8E);
   SetIDTGate(31, (uint32_t)isr31, 0x08, 0x8E);
+  SetIDTGate(128, (uint32_t)isr128, 0x08, 0x8E);
 
   SetPICGates();
 

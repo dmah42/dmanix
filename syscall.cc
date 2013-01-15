@@ -1,8 +1,8 @@
 #include "syscall.h"
 
-#include "array_size.h"
-#include "assert.h"
-#include "isr.h"
+#include "base/array_size.h"
+#include "base/assert.h"
+#include "interrupt/isr.h"
 #include "screen.h"
 
 #define DEFN_SYSCALL0(fn, num)                      \
@@ -33,8 +33,9 @@ DEFN_SYSCALL1(puts, 0, const char*)
 
 namespace {
 
+  // TODO: template magic thing here
 void* syscalls[] = {
-  (void*) &_puts
+  (void*) &screen::puts
 };
 
 void Handler(isr::Registers& regs) {

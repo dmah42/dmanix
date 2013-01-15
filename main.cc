@@ -204,7 +204,10 @@ namespace test {
 
 int main() {
   dt::Initialize();
-  //screen::Clear();
+  screen::Clear();
+
+  asm volatile("sti");
+  timer::Initialize(50);
 
   //multiboot::Dump();
 
@@ -216,9 +219,6 @@ int main() {
 
   // test::memory();
   paging::Initialize();
-
-  asm volatile("sti");
-  timer::Initialize(50);
 
   task::Initialize();
 
@@ -234,11 +234,6 @@ int main() {
 
   syscall::Initialize();
 
-  // create a new process in a new address space which is a clone
-  uint32_t ret = task::Fork();
-  screen::Printf("Fork returned 0x%x and PID() returned 0x%x\n",
-                 ret, task::PID());
-  screen::puts("=========================================\n");
 
   // test::fork();
   // test::vga();
@@ -246,7 +241,7 @@ int main() {
   // test::interrupt();
   // test::timer();
   // test::page_fault();
-  test::memory();
+  // test::memory();
   // test::initrd();
   test::user_mode();
 

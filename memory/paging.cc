@@ -127,7 +127,7 @@ void PageFault(isr::Registers& regs) {
   if (user) screen::puts("user-mode ");
   if (reserved) screen::puts("reserved ");
   if (instruction) screen::puts("instruction ");
-  screen::Printf(") at 0x%x\n", faulting_address);
+  screen::Printf(") at 0x%x - EIP: \n", faulting_address, regs.eip);
   PANIC("Page fault"); 
 }
 
@@ -193,7 +193,7 @@ void Initialize() {
   // enabled. Inside the loop body we actually change base_address by
   // calling kalloc().
   // Allocate a bit extra so the kernel heap can be initialised properly.
-  for (uint32_t i = 0x0; i < base_address + 0x1000; i += 0x1000)
+  for (uint32_t i = 0x0; i < 0x400000 /*base_address + 0x1000*/; i += 0x1000)
     AllocFrame(GetPage(i, true, kernel_directory), false, false);
 
   // Allocate the pages we mapped

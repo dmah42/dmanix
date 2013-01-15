@@ -24,11 +24,7 @@ align 4
   dd MBOOT_FLAGS
   dd MBOOT_CHECKSUM
 
-; reserve initial stack space
-; STACKSIZE equ 0x4000  ; 16kb
-
 start:
-  ; mov   esp, stack + STACKSIZE
   mov   [mbmagic], eax
   mov   [mbd], ebx
   mov   [stack], esp
@@ -44,6 +40,7 @@ start:
   jb    .call_ctor
 
   ; call kernel
+  cli
   call main
 
   ; call destructors in reverse order
@@ -66,4 +63,4 @@ section .bss
 align 4
 mbmagic:  resd 1
 mbd:      resd 1
-stack:    resb 1
+stack:    resd 1

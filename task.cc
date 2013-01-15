@@ -63,7 +63,8 @@ void MoveStack(void* new_stack, uint32_t size) {
   for (uint32_t i = (uint32_t) new_stack;
        i >= (uint32_t) new_stack - size;
        i -= 0x1000) {
-    AllocFrame(GetPage(i, true, paging::current_directory), false, true);
+    paging::AllocFrame(
+        paging::GetPage(i, true, paging::current_directory), false, true);
   }
 
   // Flush the TLB
@@ -143,8 +144,7 @@ uint32_t Fork() {
   // TODO: clean these tasks up once they complete.
   void* task_mem = kalloc(sizeof(Task));
   Task* task = new (task_mem) Task(directory);
-  // BUG: Should this be current->stack?
-  current->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
+  task->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
 
   // add to the end of the queue
   // TODO: track the end of the list
@@ -258,12 +258,12 @@ void UserMode() {
                         \
       mov %esp, %eax;   \
       pushl $0x23;      \
-      pushl %eax;       \
+      pushl %esp;       \
       pushf;            \
       pushl $0x1B;      \
       push $1f;         \
       iret;             \
-      1:");
+    1:");
 }
 
 }  // namespace task
