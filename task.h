@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <stdint.h>
+
 namespace task {
 
 void Initialize();
