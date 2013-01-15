@@ -14,16 +14,21 @@ class Heap {
 
   void Dump();
 
+  bool Owns(void* p) const {
+    return (uint32_t) p > start_address && (uint32_t) p < end_address;
+  }
+
  private:
   struct Header {
-    uint32_t magic : 31;
+    uint32_t magic : 9;
     uint32_t is_hole : 1;
-    uint32_t size;
+    uint32_t size : 22;   // 4Mb max individual alloc
   };
 
   struct Footer {
-    uint32_t magic;
-    Header* header;
+    uint32_t magic : 9;
+    uint32_t size : 22;
+    uint32_t padding : 1;
   };
 
   static bool HeaderLessThan(Header* const& a, Header* const& b);

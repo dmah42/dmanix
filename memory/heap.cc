@@ -3,7 +3,7 @@
 #include <new>
 
 #define HEAP_INDEX_SIZE     0x20000
-#define HEAP_MAGIC          0x0ABBCCD0
+#define HEAP_MAGIC          0x1FF
 #define HEAP_MIN_SIZE       0x70000
 
 // static
@@ -20,6 +20,7 @@ void Heap::Destroy(Heap* heap) {
 }
 
 void* Heap::Alloc(uint32_t size, bool page_align) {
+  ASSERT(size <= 1 << 22);
   uint32_t new_size = size + sizeof(Header) + sizeof(Footer);
   uint32_t iterator = FindSmallestHole(new_size, page_align);
   if (iterator == (uint32_t) -1) {
@@ -50,7 +51,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
       Footer* footer = (Footer*) (old_end_address + header->size - sizeof(Footer));
       footer->magic = HEAP_MAGIC;
-      footer->header = header;
+      footer->size = header->size;
 
       index.Insert(header);
     } else {
@@ -60,7 +61,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
       // Rewrite the footer
       Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
-      footer->header = header;
+      footer->size = header->size;
       footer->magic = HEAP_MAGIC;
     }
     // We now have enough space - recurse and try again.
@@ -86,7 +87,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
     Footer* hole_footer = (Footer*) ((uint32_t)new_location - sizeof(Footer));
     hole_footer->magic = HEAP_MAGIC;
-    hole_footer->header = hole_header;
+    hole_footer->size = hole_header->size;
 
     orig_pos = new_location;
     orig_size = orig_size - hole_header->size;
@@ -101,7 +102,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
   Footer* block_footer = (Footer*) (orig_pos + sizeof(Header) + size);
   block_footer->magic = HEAP_MAGIC;
-  block_footer->header = block_header;
+  block_footer->size = block_header->size;
 
   // Do we need a new hole after the block?
   if (orig_size - new_size > 0) {
@@ -113,7 +114,7 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
     Footer* hole_footer = (Footer*) ((uint32_t)hole_header + orig_size - new_size - sizeof(Footer));
     if ((uint32_t)hole_footer < end_address) {
       hole_footer->magic = HEAP_MAGIC;
-      hole_footer->header = hole_header;
+      hole_footer->size = hole_header->size;
     }
     index.Insert(hole_header);
   }
@@ -129,30 +130,32 @@ void Heap::Free(void* p) {
 
   ASSERT(header->magic == HEAP_MAGIC);
   ASSERT(footer->magic == HEAP_MAGIC);
-  ASSERT(footer->header == header);
+  ASSERT(footer->size == header->size);
 
   header->is_hole = 1;
 
   bool do_add = true;
 
   // Coalesce left
-  Footer* test_footer = (Footer*) ((uint32_t) header - sizeof(Footer));
-  if (test_footer->magic == HEAP_MAGIC && test_footer->header->is_hole == 1) {
+  Footer* left_footer = (Footer*) ((uint32_t) header - sizeof(Footer));
+  Header* left_header = (Header*) ((uint32_t) header - left_footer->size);
+  if (left_footer->magic == HEAP_MAGIC && left_header->is_hole == 1) {
     uint32_t cache_size = header->size;
-    header = test_footer->header;
-    footer->header = header;
+    header = left_header;
     header->size += cache_size;
+    footer->size = header->size;
     do_add = false;
   }
 
   // Coalesce right
-  Header* test_header = (Header*) ((uint32_t)footer + sizeof(Footer));
-  if (test_header->magic == HEAP_MAGIC && test_header->is_hole) {
-    header->size += test_header->size;
-    test_footer = (Footer*)((uint32_t)test_header + test_header->size - sizeof(Footer));
-    footer = test_footer;
+  Header* right_header = (Header*) ((uint32_t)footer + sizeof(Footer));
+  if (right_header->magic == HEAP_MAGIC && right_header->is_hole) {
+    header->size += right_header->size;
+    Footer* right_footer = (Footer*)((uint32_t)right_header + right_header->size - sizeof(Footer));
+    footer = right_footer;
+    footer->size = header->size;
     uint32_t iterator = 0;
-    while ((iterator < index.get_size()) && index.Lookup(iterator) != test_header)
+    while ((iterator < index.get_size()) && index.Lookup(iterator) != right_header)
       ++iterator;
 
     ASSERT(iterator < index.get_size());
@@ -191,7 +194,7 @@ void Heap::Dump() {
     ASSERT(header->magic == HEAP_MAGIC);
     Footer* f = (Footer*)(header_addr + header->size - sizeof(Footer));
     ASSERT(f->magic == HEAP_MAGIC);
-    ASSERT(f->header == header);
+    ASSERT(f->size == header->size);
     uint32_t size = header->size - (sizeof(Header) + sizeof(Footer));
     uint32_t p = header_addr + sizeof(Header);
     screen::Printf("  0x%x %c %u (0x%x)\n",
@@ -231,7 +234,7 @@ Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
 
   Footer* hole_footer = (Footer*) (((uint32_t) hole) + hole->size - sizeof(Footer));
   hole_footer->magic = HEAP_MAGIC;
-  hole_footer->header = hole;
+  hole_footer->size = hole->size;
 
   index.Insert(hole);
 }
