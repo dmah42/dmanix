@@ -182,10 +182,10 @@ void Heap::Free(void* p) {
       header->size -= old_length - new_length;
       footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
       footer->magic = HEAP_MAGIC;
-      footer->header = header;
+      footer->size = header->size;
     } else {
       uint32_t iterator = 0;
-      while ((iterator < index.get_size()) && (index.Lookup(iterator) != test_header))
+      while ((iterator < index.get_size()) && (index.Lookup(iterator) != right_header))
         ++iterator;
       if (iterator < index.get_size())
         index.Remove(iterator);
