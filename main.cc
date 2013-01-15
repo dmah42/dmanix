@@ -234,16 +234,17 @@ int main() {
 
   syscall::Initialize();
 
-
-  // test::fork();
+  test::fork();
   // test::vga();
-  // test::colors();
+  asm volatile ("cli");
+  test::colors();
+  asm volatile ("sti");
   // test::interrupt();
   // test::timer();
   // test::page_fault();
   // test::memory();
   // test::initrd();
-  test::user_mode();
+  // test::user_mode();
 
   // TODO: Launch executables
 
@@ -253,10 +254,11 @@ int main() {
   paging::Shutdown();
   screen::puts("done.\n");
 
-  kheap->Dump();
+  // kheap->Dump();
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Goodbye.\n");
 
+  for (;;);
   return 0;
 }
