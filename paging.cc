@@ -3,9 +3,9 @@
 #include <new>
 
 #include "array_size.h"
-#include "heap.h"
-#include "isr.h"
-#include "memory.h"
+#include "interrupt/isr.h"
+#include "memory/heap.h"
+#include "memory/memory.h"
 #include "screen.h"
 
 // from kalloc.cc

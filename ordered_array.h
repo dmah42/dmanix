@@ -2,8 +2,8 @@
 #define ORDERED_ARRAY_H
 
 #include "assert.h"
-#include "kalloc.h"
-#include "memory.h"
+#include "memory/kalloc.h"
+#include "memory/memory.h"
 #include "screen.h"
 
 template<typename T>

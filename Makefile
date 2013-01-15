@@ -5,8 +5,14 @@ AS = nasm
 LD = ld
 
 # TODO: Use wildcard for dir, exclude tools.
-CC_SOURCES := $(wildcard *.cc) $(wildcard fs/*.cc)
-AS_SOURCES := $(wildcard *.s)
+CC_SOURCES := $(wildcard *.cc) \
+							$(wildcard fs/*.cc) \
+							$(wildcard interrupt/*.cc) \
+							$(wildcard memory/*.cc)
+AS_SOURCES := $(wildcard *.s) \
+							$(wildcard fs/*.s) \
+							$(wildcard interrupt/*.s) \
+							$(wildcard memory/*.s)
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 AS_OBJECTS := $(addprefix $(OBJDIR)/,$(AS_SOURCES:.s=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
@@ -42,6 +48,7 @@ $(OBJDIR)/%.o: %.cc
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: %.s
+	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
 initrd: $(INITRD_BUILD) initrd_index

@@ -2,8 +2,8 @@
 
 #include "fs/fs.h"
 #include "fs/node.h"
-#include "kalloc.h"
-#include "memory.h"
+#include "memory/kalloc.h"
+#include "memory/memory.h"
 #include "multiboot.h"
 #include "screen.h"
 #include "string.h"

@@ -1,7 +1,7 @@
 #include "array_size.h"
 #include "io.h"
-#include "isr.h"
-#include "memory.h"
+#include "interrupt/isr.h"
+#include "memory/memory.h"
 
 // Defined in asm.
 extern "C" {

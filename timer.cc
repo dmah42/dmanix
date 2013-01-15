@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include "io.h"
-#include "isr.h"
+#include "interrupt/isr.h"
 
 namespace timer {
 namespace {
