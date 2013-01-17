@@ -6,6 +6,7 @@ LD = ld
 
 CC_SOURCES := $(wildcard *.cc) $(wildcard */*.cc)
 CC_SOURCES := $(filter-out $(wildcard tools/*.cc), $(CC_SOURCES))
+CC_SOURCES := $(filter-out $(wildcard test/*.cc), $(CC_SOURCES))
 AS_SOURCES := $(wildcard *.s) $(wildcard */*.s)
 AS_SOURCES := $(filter-out $(wildcard tools/*.s), $(AS_SOURCES))
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
@@ -17,7 +18,7 @@ INITRD_BUILD = tools/initrd_build
 EXECUTABLE = kernel
 MODULES = initrd
 
-CXXFLAGS = -Wall -Werror -Wextra -O0 -I. \
+CXXFLAGS = -Wall -Werror -Wextra -O0 -iquote. \
 					 -nostdlib -nodefaultlibs \
 					 -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
 				   -m32 -g
@@ -25,6 +26,9 @@ LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
 all: $(EXECUTABLE) $(MODULES)
+
+test:
+	@make -C test
 
 clean:
 	-rm $(OBJECTS) $(EXECUTABLE)
