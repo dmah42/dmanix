@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "base/assert.h"
 #include "base/io.h"
 #include "screen.h"
 
@@ -11,6 +12,11 @@ Handler handlers[256] = {NULL};
 
 void RegisterHandler(Interrupt interrupt, Handler h) {
   handlers[interrupt] = h;
+}
+
+void UnregisterHandler(Interrupt interrupt, Handler h) {
+  ASSERT(handlers[interrupt] == h);
+  handlers[interrupt] = NULL;
 }
 
 }

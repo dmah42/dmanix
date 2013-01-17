@@ -3,6 +3,8 @@
 
 #include "ordered_array.h"
 
+namespace memory {
+
 class Heap {
  public:
   static Heap* Create(uint32_t start, uint32_t end, uint32_t max,
@@ -13,6 +15,7 @@ class Heap {
   void Free(void* p);
 
   void Dump();
+  void Verify();
 
   bool Owns(void* p) const {
     return (uint32_t) p > start_address && (uint32_t) p < end_address;
@@ -32,6 +35,8 @@ class Heap {
   };
 
   static bool HeaderLessThan(Header* const& a, Header* const& b);
+  static void DumpHeader(Header* h);
+  static void VerifyHeader(Header* h);
 
   Heap(uint32_t start, uint32_t end, uint32_t max,
        bool supervisor, bool readonly);
@@ -41,6 +46,8 @@ class Heap {
   void Expand(uint32_t new_size);
   uint32_t Contract(uint32_t new_size);
 
+  void VisitAllHeaders(void (*callback)(Header*));
+
   OrderedArray<Header*> index;
   uint32_t start_address;
   uint32_t end_address;
@@ -48,5 +55,7 @@ class Heap {
   bool supervisor;
   bool readonly;
 };
+
+}  // namespace memory
 
 #endif  // KMALLOC_H

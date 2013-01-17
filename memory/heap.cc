@@ -17,6 +17,8 @@ void FreeFrame(Page* page);
 Page* GetPage(uint32_t address, bool make, Directory* dir);
 }  // namespace paging
 
+namespace memory {
+
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
                    bool supervisor, bool readonly) {
@@ -198,25 +200,36 @@ void Heap::Free(void* p) {
 
 void Heap::Dump() {
   screen::puts("Dumping Heap...\n");
-  uint32_t header_addr = start_address;
-  while (header_addr < end_address) {
-    Header* header = (Header*) header_addr;
-    ASSERT(header->magic == HEAP_MAGIC);
-    Footer* f = (Footer*)(header_addr + header->size - sizeof(Footer));
-    ASSERT(f->magic == HEAP_MAGIC);
-    ASSERT(f->size == header->size);
-    uint32_t size = header->size - (sizeof(Header) + sizeof(Footer));
-    uint32_t p = header_addr + sizeof(Header);
-    screen::Printf("  0x%x %c %u (0x%x)\n",
-                   p, header->is_hole == 1 ? 'F' : 'A', size, size);
-    header_addr += header->size;
-  }
+  VisitAllHeaders(DumpHeader);
+  screen::puts("complete\n");
+}
+
+void Heap::Verify() {
+  screen::puts("Verifying Heap... ");
+  VisitAllHeaders(VerifyHeader);
   screen::puts("complete\n");
 }
 
 // static
 bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
   return a->size < b->size;
+}
+
+// static
+void Heap::DumpHeader(Header* header) {
+  VerifyHeader(header);
+  uint32_t size = header->size - (sizeof(Header) + sizeof(Footer));
+  uint32_t p = (uint32_t) header + sizeof(Header);
+  screen::Printf("  0x%x %c %u (0x%x)\n",
+                 p, header->is_hole == 1 ? 'F' : 'A', size, size);
+}
+ 
+// static
+void Heap::VerifyHeader(Header* header) {
+  ASSERT(header->magic == HEAP_MAGIC);
+  Footer* f = (Footer*)((uint32_t) header + header->size - sizeof(Footer));
+  ASSERT(f->magic == HEAP_MAGIC);
+  ASSERT(f->size == header->size);
 }
 
 Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
@@ -321,4 +334,15 @@ uint32_t Heap::Contract(uint32_t new_size) {
   end_address = start_address + new_size;
   return new_size;
 }
+
+void Heap::VisitAllHeaders(void (*callback)(Header*)) {
+  uint32_t header_addr = start_address;
+  while (header_addr < end_address) {
+    Header* header = (Header*) header_addr;
+    callback(header);
+    header_addr += header->size;
+  }
+}
+
+}  // namespace memory
 

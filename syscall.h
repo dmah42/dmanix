@@ -8,6 +8,7 @@
 namespace syscall {
 
 void Initialize();
+void Shutdown();
 
 DECL_SYSCALL1(puts, const char*)
 

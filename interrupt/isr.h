@@ -33,6 +33,7 @@ struct Registers {
 
 typedef void (*Handler)(Registers&);
 void RegisterHandler(Interrupt interrupt, Handler h);
+void UnregisterHandler(Interrupt interrupt, Handler h);
 
 }
 

@@ -69,4 +69,8 @@ void Initialize() {
   isr::RegisterHandler(0x80, Handler);
 }
 
+void Shutdown() {
+  isr::UnregisterHandler(0x80, Handler);
+}
+
 }  // namespace syscall

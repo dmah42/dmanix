@@ -24,7 +24,7 @@ extern Node* root;
 extern uint32_t base_address;
 
 // from paging.cc
-extern Heap* kheap;
+extern memory::Heap* kheap;
 
 namespace test {
 
@@ -161,7 +161,8 @@ namespace test {
     void* b = kalloc(8);
     screen::Printf(", b: 0x%x\n", b);
 
-    kheap->Dump();
+    if (kheap)
+      kheap->Dump();
 
     screen::puts("about to free\n");
     kfree(b);
@@ -217,7 +218,7 @@ int main() {
   // Update base address so we don't trample the modules.
   base_address = mod[mbd->mods_count - 1].end_address;
 
-  // test::memory();
+  test::memory();
   paging::Initialize();
 
   task::Initialize();
@@ -240,13 +241,14 @@ int main() {
   // test::interrupt();
   // test::timer();
   // test::page_fault();
-  // test::memory();
+  test::memory();
   // test::initrd();
   // test::user_mode();
 
   // TODO: Launch executables
 
   screen::puts("Shutting down... ");
+  syscall::Shutdown();
   initrd::Shutdown();
   timer::Shutdown();
   paging::Shutdown();

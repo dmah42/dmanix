@@ -36,6 +36,7 @@ void Initialize(uint32_t frequency) {
 
 void Shutdown() {
   callback = NULL;
+  isr::UnregisterHandler(IRQ0, &OnTick);
 }
 
 void RegisterCallback(Callback cb) {

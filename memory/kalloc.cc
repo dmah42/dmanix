@@ -6,7 +6,7 @@ extern uint32_t end;
 uint32_t base_address = (uint32_t)&end;
 
 // from paging.cc
-extern Heap* kheap;
+extern memory::Heap* kheap;
 
 namespace {
 

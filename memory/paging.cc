@@ -20,7 +20,7 @@ extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
 #define KHEAP_MAX           0xCFFFF000
 
-Heap* kheap = NULL;
+memory::Heap* kheap = NULL;
 
 namespace paging {
 
@@ -206,19 +206,22 @@ void Initialize() {
   SwitchPageDirectory(kernel_directory);
 
   // Create the kernel heap
-  kheap = Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
+  kheap = memory::Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
 
   current_directory = kernel_directory->Clone();
   SwitchPageDirectory(current_directory);
 }
 
 void Shutdown() {
-  Heap::Destroy(kheap); 
+  memory::Heap::Destroy(kheap); 
 
+  // TODO: free all directories
   kernel_directory->~Directory();
   kfree(kernel_directory);
 
   kfree(frames);
+
+  isr::UnregisterHandler(14, PageFault);
 }
 
 uint32_t GetPhysicalAddress(uint32_t address) {
