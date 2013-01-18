@@ -1,6 +1,8 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include <stdint.h>
+
 enum Color {
   COLOR_BLACK = 0,
   COLOR_DARK_BLUE = 1,
@@ -30,7 +32,12 @@ void Printf(const char* format, ...);
 void ResetColor();
 void SetColor(Color fore, Color back);
 
+// Mode 13 stuff
 void Mode13h();
+
+void Pixel(uint16_t x, uint16_t y, Color color);
+void Line(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, Color c);
+
 
 }  // namespace screen
 

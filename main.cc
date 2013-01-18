@@ -137,6 +137,11 @@ namespace test {
 
   void mode13() {
     screen::Mode13h();
+
+    for (uint16_t x = 0; x < 320; ++x)
+      for (uint16_t y = 0; y < 200; ++y)
+        screen::Pixel(x, y, COLOR_DARK_BLUE);
+    screen::Line(0, 0, 320, 200, COLOR_WHITE);
     for(;;);
   }
 
@@ -240,8 +245,6 @@ int main() {
 
   syscall::Initialize();
 
-  test::mode13();
-  // test::fork();
   // test::vga();
   // test::colors();
   // test::interrupt();
@@ -249,7 +252,9 @@ int main() {
   // test::page_fault();
   // test::memory();
   // test::initrd();
+  // test::fork();
   // test::user_mode();
+  // test::mode13();
 
   // TODO: Launch executables
 

@@ -11,11 +11,15 @@
 
 #define TAB_WIDTH 8
 
+#define ABS(a) ((a) < 0 ? -(a) : (a))
+#define SGN(a) ((a) < 0 ? -1 : ((a) > 0 ? 1 : 0))
+
 namespace screen {
 
 namespace {
 
-uint16_t* video_memory = (uint16_t*) 0xB8000;
+uint16_t* text_vram = (uint16_t*) 0xB8000;
+uint8_t* mode13_vram = (uint8_t*) 0xA0000;
 
 uint8_t back_color = COLOR_BLACK;
 uint8_t fore_color = COLOR_LIGHT_GREY;
@@ -40,13 +44,13 @@ void Scroll() {
   if (cursor.y >= 25) {
     // copy into every row from the one below
     for (int i = 0; i < NUM_ROWS - 1; ++i) {
-      memory::copy(&video_memory[i * NUM_COLS],
-                   &video_memory[(i+1) * NUM_COLS],
+      memory::copy(&text_vram[i * NUM_COLS],
+                   &text_vram[(i+1) * NUM_COLS],
                    NUM_COLS);
     }
 
     // clear the last row
-    memory::set(&video_memory[(NUM_ROWS - 1) * NUM_COLS], blank, NUM_COLS);
+    memory::set(&text_vram[(NUM_ROWS - 1) * NUM_COLS], blank, NUM_COLS);
 
     cursor.y = NUM_ROWS - 1;
   }
@@ -72,7 +76,7 @@ void putc(char c) {
   // printables
   else if (c >= ' ') {
     const uint8_t attribute = (back_color << 4) | (fore_color & 0xF);
-    uint16_t* video_mem_ptr = video_memory + (cursor.y * NUM_COLS + cursor.x);
+    uint16_t* video_mem_ptr = text_vram + (cursor.y * NUM_COLS + cursor.x);
     *video_mem_ptr = (attribute << 8) | c;
     ++cursor.x;
   }
@@ -131,11 +135,12 @@ void putd(int32_t dec) {
   putu(dec);
 }
 
+// TODO: take care of which mode we're in.
 void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
-  memory::set(video_memory, blank, NUM_COLS * NUM_ROWS - 1);
+  memory::set(text_vram, blank, NUM_COLS * NUM_ROWS - 1);
   cursor.Reset();
   cursor.Move();
 }
@@ -235,16 +240,52 @@ void Mode13h() {
 
   // enable video
   io::outb(0x3C0, 0x20);
+}
 
-  // Plot pixels
-  uint8_t* VGA = (uint8_t*) 0xA0000;
-  for (uint16_t x = 0; x < 320; ++x) {
-    for (uint16_t y = 0; y < 200; ++y) {
-      uint16_t index = 320 * y + x;
-      VGA[index] = y % 15 + 1;
+void Pixel(uint16_t x, uint16_t y, Color c) {
+  uint16_t index = 320 * y + x;
+  mode13_vram[index] = c;
+}
+
+// Bresenham's
+void Line(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, Color c) {
+  int16_t dx = ex - sx;
+  int16_t dy = ey - sy;
+
+  uint16_t adx = ABS(dx);
+  uint16_t ady = ABS(dy);
+
+  int16_t sdx = SGN(dx);
+  int16_t sdy = SGN(dy);
+
+  uint16_t x = ady / 2;
+  uint16_t y = adx / 2;
+
+  uint16_t px = sx;
+  uint16_t py = sy;
+
+  Pixel(px, py, c);
+  if (adx >= ady) {
+    // more horizontal
+    for (uint16_t i = 0; i < adx; ++i) {
+      y += ady;
+      if (y >= adx) {
+        y -= adx;
+        py += sdy;
+      }
+      px += sdx;
+      Pixel(px, py, c);
     }
+  } else {
+    // more vertical
+    x += adx;
+    if (x >= ady) {
+      x -= ady;
+      px += sdx;
+    }
+    py += sdy;
+    Pixel(px, py, c);
   }
-
 }
 
 }  // namespace screen
