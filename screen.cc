@@ -193,4 +193,58 @@ void SetColor(Color fore, Color back) {
   back_color = back;
 }
 
+void Mode13h() {
+  uint8_t hor_regs[] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x13};
+  uint8_t ver_regs[] = {0x6, 0x7, 0x9, 0x10, 0x11, 0x12, 0x15, 0x16};
+
+  uint8_t w[] = {0x5F, 0x4F, 0x50, 0x82, 0x54, 0x80, 0x28};
+  uint8_t h[] = {0xBF, 0x1F, 0x41, 0x9C, 0x8E, 0x8F, 0x96, 0xB9};
+
+  uint8_t val = 0x63;
+
+  io::outb(0x3C2, val);
+  io::outw(0x3D4, 0x0E11);  // enable regs 0-7
+
+  for (uint32_t a = 0; a < 7; ++a)
+    io::outw(0x3D4, (uint16_t)((w[a]<<8) + hor_regs[a]));
+  for (uint32_t a = 0; a < 8; ++a)
+    io::outw(0x3D4, (uint16_t)((h[a]<<8) + ver_regs[a]));
+
+  io::outw(0x3D4, 0x0008);  // vert.panning = 0
+
+  // try chaining
+  io::outw(0x3D4, 0x4014);
+  io::outw(0x3D4, 0xA317);
+  io::outw(0x3D4, 0x0E04);
+
+  io::outw(0x3C4, 0x0101);
+  io::outw(0x3C4, 0x0F02);  // enable writes to all planes
+  io::outw(0x3CE, 0x4005);  // 256-colors
+  io::outw(0x3CE, 0x0506);  // graph mode & A000-AFFF
+
+  // Make sure we're in the write state to receive control states.
+  io::inb(0x3DA);
+  io::outb(0x3C0, 0x30); io::outb(0x3C0, 0x41);
+  io::outb(0x3C0, 0x33); io::outb(0x3C0, 0x00);
+
+  // EGA palette
+  for (uint8_t a = 0; a < 16; ++a) {
+    io::outb(0x3C0, a);
+    io::outb(0x3C0, a);
+  }
+
+  // enable video
+  io::outb(0x3C0, 0x20);
+
+  // Plot pixels
+  uint8_t* VGA = (uint8_t*) 0xA0000;
+  for (uint16_t x = 0; x < 320; ++x) {
+    for (uint16_t y = 0; y < 200; ++y) {
+      uint16_t index = 320 * y + x;
+      VGA[index] = y % 15 + 1;
+    }
+  }
+
+}
+
 }  // namespace screen

@@ -135,6 +135,11 @@ namespace test {
     screen::puts("white\n");
   }
 
+  void mode13() {
+    screen::Mode13h();
+    for(;;);
+  }
+
   void interrupt() {
     asm volatile("int $0x3");
     asm volatile("int $0x4");
@@ -218,7 +223,7 @@ int main() {
   // Update base address so we don't trample the modules.
   base_address = mod[mbd->mods_count - 1].end_address;
 
-  test::memory();
+  // test::memory();
   paging::Initialize();
 
   task::Initialize();
@@ -235,13 +240,14 @@ int main() {
 
   syscall::Initialize();
 
+  test::mode13();
   // test::fork();
   // test::vga();
   // test::colors();
   // test::interrupt();
   // test::timer();
   // test::page_fault();
-  test::memory();
+  // test::memory();
   // test::initrd();
   // test::user_mode();
 

@@ -30,6 +30,8 @@ void Printf(const char* format, ...);
 void ResetColor();
 void SetColor(Color fore, Color back);
 
+void Mode13h();
+
 }  // namespace screen
 
 #endif  // SCREEN_H
