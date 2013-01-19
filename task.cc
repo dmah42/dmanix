@@ -53,8 +53,8 @@ struct Task {
   Task* next;
 };
 
-Task* volatile current;
-Task* volatile queue;
+Task* volatile current = NULL;
+Task* volatile queue = NULL;
 
 // static
 uint32_t Task::next_pid = 1U;
