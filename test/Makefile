@@ -6,6 +6,7 @@ AR = ar
 CC_SOURCES := $(wildcard *.cc)
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
+CC_DEPS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.d))
 
 GTEST_DIR = ../third_party/gtest-1.6.0
 
@@ -16,10 +17,19 @@ CXXFLAGS = -Wall -O0 \
 EXECUTABLE = test_all
 GTEST_LIB = libgtest.a
 
+.PHONY: all clean 
+
+.PRECIOUS: $(OBJDIR)/%.d
+
 all: $(EXECUTABLE)
 
 clean:
-	@-rm -f $(OBJECTS) $(OBJDIR)/gtest-all.o $(GTEST_LIB) $(EXECUTABLE)
+	@-rm -f $(CC_DEPS) $(OBJECTS) $(OBJDIR)/gtest-all.o $(GTEST_LIB) $(EXECUTABLE)
+
+ifeq (0, $(words $(findstring $(MAKECMDGOALS), clean)))
+	-include $(CC_DEPS)
+endif
+#include $(CC_DEPS)
 
 $(GTEST_LIB): | $(OBJDIR)
 	$(CC) -I$(GTEST_DIR)/include -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc -o $(OBJDIR)/gtest-all.o
@@ -33,7 +43,11 @@ $(OBJECTS): | $(OBJDIR)
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
 
-$(OBJDIR)/%.o: %.cc
+$(OBJDIR)/%.d: %.cc
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) -MF$@ -MG -MM -MP -MT$(addprefix $(OBJDIR)/,$(<:.cc=.o)) $<
+
+$(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d
 	@mkdir -p $(dir $@)
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
