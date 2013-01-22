@@ -170,7 +170,7 @@ void WriteTSS(uint16_t ss0, uint32_t esp0) {
   uint32_t limit = base + sizeof(TSSEntry);
 
   SetGDTGate(SEGMENT_TSS, base, limit, 0xE9, 0x00);
-  memory::set(&tss_entry, 0, sizeof(TSSEntry));
+  memory::set8((uint8_t*) &tss_entry, 0, sizeof(TSSEntry));
 
   tss_entry.ss0 = ss0;
   tss_entry.esp0 = esp0;
@@ -251,7 +251,8 @@ void InitIDT() {
   idt_pointer.limit = (sizeof(IDTEntry) * ARRAY_SIZE(idt_entries)) - 1;
   idt_pointer.base = (uint32_t)&idt_entries;
 
-  memory::set(idt_entries, 0, sizeof(IDTEntry) * ARRAY_SIZE(idt_entries));
+  memory::set8((uint8_t*) idt_entries, 0,
+               sizeof(IDTEntry) * ARRAY_SIZE(idt_entries));
 
   // Remap IRQ table to avoid conflicts
   RemapPIC();

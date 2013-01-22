@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace paging {
+namespace memory {
 
 struct Table;
 struct Directory {
@@ -22,6 +22,6 @@ void Shutdown();
 
 uint32_t GetPhysicalAddress(uint32_t address);
 
-}  // namespace paging
+}  // namespace memory
 
 #endif  // PAGING_H

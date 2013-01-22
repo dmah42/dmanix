@@ -56,7 +56,7 @@ OrderedArray<T>::OrderedArray(void* array, uint32_t capacity, Predicate predicat
       predicate(predicate),
       size(0),
       capacity(capacity) {
-  memory::set(array, 0, capacity * sizeof(T));
+  memory::set8((uint8_t*) array, 0, capacity * sizeof(T));
 }
 
 template<typename T>

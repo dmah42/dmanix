@@ -32,7 +32,7 @@ uint32_t Read(fs::Node *node, uint32_t offset, uint32_t size, uint8_t* buffer) {
     return 0;
   if (offset + size > header.size)
     size = header.size - offset;
-  memory::copy(buffer, (uint8_t*) (header.offset + offset), size);
+  memory::copy8(buffer, (const uint8_t*) (header.offset + offset), size);
   return size;
 }
 

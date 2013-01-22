@@ -20,11 +20,13 @@ namespace fs {
 extern Node* root;
 }
 
+namespace memory {
+// from paging.cc
+extern Heap* kheap;
+
 // from kalloc.cc
 extern uint32_t base_address;
-
-// from paging.cc
-extern memory::Heap* kheap;
+}
 
 namespace test {
 
@@ -171,8 +173,8 @@ namespace test {
     void* b = kalloc(8);
     screen::Printf(", b: 0x%x\n", b);
 
-    if (kheap)
-      kheap->Dump();
+    if (memory::kheap)
+      memory::kheap->Dump();
 
     screen::puts("about to free\n");
     kfree(b);
@@ -226,10 +228,10 @@ int main() {
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
 
   // Update base address so we don't trample the modules.
-  base_address = mod[mbd->mods_count - 1].end_address;
+  memory::base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
-  paging::Initialize();
+  memory::Initialize();
 
   task::Initialize();
 
@@ -262,7 +264,7 @@ int main() {
   syscall::Shutdown();
   initrd::Shutdown();
   timer::Shutdown();
-  paging::Shutdown();
+  memory::Shutdown();
   screen::puts("done.\n");
 
   // kheap->Dump();

@@ -18,7 +18,7 @@ namespace dt {
 extern void SetKernelStack(uint32_t stack);
 }
 
-namespace paging {
+namespace memory {
 struct Page;
 
 extern Directory* kernel_directory;
@@ -26,13 +26,13 @@ extern Directory* current_directory;
 
 extern Page* GetPage(uint32_t address, bool make, Directory* dir);
 extern void AllocFrame(Page* page, bool is_kernel, bool is_writeable);
-}
+}  // namespace memory
 
 namespace task {
 namespace {
 
 struct Task {
-  explicit Task(paging::Directory* directory)
+  explicit Task(memory::Directory* directory)
       : pid(next_pid++),
         esp(0), ebp(0), eip(0),
         directory(directory),
@@ -49,7 +49,7 @@ struct Task {
   uint32_t esp, ebp;
   uint32_t eip;
   uint32_t stack;  // kernel stack location
-  paging::Directory* directory;
+  memory::Directory* directory;
   Task* next;
 };
 
@@ -63,8 +63,8 @@ void MoveStack(void* new_stack, uint32_t size) {
   for (uint32_t i = (uint32_t) new_stack;
        i >= (uint32_t) new_stack - size;
        i -= 0x1000) {
-    paging::AllocFrame(
-        paging::GetPage(i, true, paging::current_directory), false, true);
+    memory::AllocFrame(
+        memory::GetPage(i, true, memory::current_directory), false, true);
   }
 
   // Flush the TLB
@@ -83,8 +83,8 @@ void MoveStack(void* new_stack, uint32_t size) {
   uint32_t new_base_ptr = old_base_ptr + offset;
 
   // copy the stack
-  memory::copy((void*) new_stack_ptr, (void*) old_stack_ptr,
-               stack - old_stack_ptr);
+  memory::copy8((uint8_t*) new_stack_ptr, (const uint8_t*) old_stack_ptr,
+                stack - old_stack_ptr);
   
   // Backtrace through the original stack, copying new values into the new
   // stack.
@@ -115,7 +115,7 @@ void Initialize() {
 
   // Initialize the first (kernel) task
   void* current_mem = kalloc(sizeof(Task));
-  current = new (current_mem) Task(paging::current_directory);
+  current = new (current_mem) Task(memory::current_directory);
   current->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
   queue = current;
 
@@ -138,7 +138,7 @@ uint32_t Fork() {
   Task* parent = current;
 
   // Clone the address space
-  paging::Directory* directory = paging::current_directory->Clone();
+  memory::Directory* directory = memory::current_directory->Clone();
 
   // New process
   // TODO: clean these tasks up once they complete.
@@ -207,7 +207,7 @@ void Switch() {
   esp = current->esp;
   ebp = current->ebp;
 
-  paging::current_directory = current->directory;
+  memory::current_directory = current->directory;
 
   dt::SetKernelStack(current->stack + KERNEL_STACK_SIZE);
 
@@ -230,7 +230,7 @@ void Switch() {
       : : "r" (eip),
           "r" (esp),
           "r" (ebp),
-          "r" (paging::current_directory->physicalAddress));
+          "r" (memory::current_directory->physicalAddress));
 }
 
 uint32_t PID() {

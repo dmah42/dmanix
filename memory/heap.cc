@@ -6,7 +6,7 @@
 #define HEAP_MAGIC          0x1FF
 #define HEAP_MIN_SIZE       0x70000
 
-namespace paging {
+namespace memory {
 struct Directory;
 struct Page;
 
@@ -15,9 +15,6 @@ extern Directory* kernel_directory;
 void AllocFrame(Page* page, bool is_kernel, bool is_writeable);
 void FreeFrame(Page* page);
 Page* GetPage(uint32_t address, bool make, Directory* dir);
-}  // namespace paging
-
-namespace memory {
 
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
@@ -305,8 +302,8 @@ void Heap::Expand(uint32_t new_size) {
   uint32_t old_size = end_address - start_address;
   uint32_t i = old_size;
   while (i < new_size) {
-    paging::AllocFrame(
-        paging::GetPage(start_address + i, true, paging::kernel_directory),
+    memory::AllocFrame(
+        memory::GetPage(start_address + i, true, memory::kernel_directory),
         supervisor, readonly);
     i += 0x1000;
   }
@@ -327,8 +324,8 @@ uint32_t Heap::Contract(uint32_t new_size) {
   uint32_t old_size = end_address - start_address;
   uint32_t i = old_size - 0x1000;
   while (new_size < i) {
-    paging::FreeFrame(
-        paging::GetPage(start_address + i, false, paging::kernel_directory));
+    memory::FreeFrame(
+        memory::GetPage(start_address + i, false, memory::kernel_directory));
     i -= 0x1000;
   }
   end_address = start_address + new_size;

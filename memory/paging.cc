@@ -8,9 +8,6 @@
 #include "memory/memory.h"
 #include "screen.h"
 
-// from kalloc.cc
-extern uint32_t base_address;
-
 // from process.s
 extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 
@@ -20,9 +17,10 @@ extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
 #define KHEAP_MAX           0xCFFFF000
 
-memory::Heap* kheap = NULL;
+namespace memory {
 
-namespace paging {
+// from kalloc.cc
+extern uint32_t base_address;
 
 struct Page {
   uint32_t present  : 1;
@@ -36,7 +34,7 @@ struct Page {
 
 struct Table {
   Table() {
-    memory::set((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
+    memory::set8((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
   }
   // TODO: copy ctor
   Table* Clone(uint32_t* physical);
@@ -46,6 +44,8 @@ struct Table {
 
 Directory* current_directory = NULL;
 Directory* kernel_directory = NULL;
+
+Heap* kheap = NULL;
 
 namespace {
 
@@ -176,7 +176,7 @@ Page* GetPage(uint32_t address, bool make, Directory* dir) {
 void Initialize() {
   num_frames = mem_end / 0x1000;
   frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
-  memory::set(frames, 0, INDEX_FROM_BIT(num_frames));
+  memory::set8((uint8_t*) frames, 0, INDEX_FROM_BIT(num_frames));
 
   // Create the page directory
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
@@ -231,8 +231,8 @@ uint32_t GetPhysicalAddress(uint32_t address) {
 }
 
 Directory::Directory() : physicalAddress(0) {
-  memory::set((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-  memory::set((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+  memory::set8((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
+  memory::set8((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
 }
 
 Directory::~Directory() {
@@ -293,4 +293,4 @@ Table* Table::Clone(uint32_t* physical) {
   return table;
 }
 
-}  // namespace paging
+}  // namespace memory

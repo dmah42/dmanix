@@ -3,10 +3,11 @@
 
 // end is defined in the linker script.
 extern uint32_t end;
-uint32_t base_address = (uint32_t)&end;
 
-// from paging.cc
-extern memory::Heap* kheap;
+namespace memory {
+extern Heap* kheap;
+
+uint32_t base_address = (uint32_t)&end;
 
 namespace {
 
@@ -14,7 +15,7 @@ void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
   if (kheap != NULL) {
     uint32_t addr = (uint32_t) kheap->Alloc(size, page_align);
     if (phys != NULL)
-      *phys = paging::GetPhysicalAddress(addr);
+      *phys = memory::GetPhysicalAddress(addr);
     return (void*) addr;
   } else {
     if (page_align && (base_address & 0xFFFFF000) != 0) {
@@ -30,6 +31,9 @@ void* kalloc_internal(uint32_t size, bool page_align, uint32_t* phys) {
 }
 
 }  // namespace
+}  // namespace memory
+
+using namespace memory;
 
 void* kalloc(uint32_t size) {
   return kalloc_internal(size, false, NULL);

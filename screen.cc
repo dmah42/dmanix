@@ -44,13 +44,13 @@ void Scroll() {
   if (cursor.y >= 25) {
     // copy into every row from the one below
     for (int i = 0; i < NUM_ROWS - 1; ++i) {
-      memory::copy(&text_vram[i * NUM_COLS],
-                   &text_vram[(i+1) * NUM_COLS],
-                   NUM_COLS);
+      memory::copy16(&text_vram[i * NUM_COLS],
+                     &text_vram[(i+1) * NUM_COLS],
+                     NUM_COLS);
     }
 
     // clear the last row
-    memory::set(&text_vram[(NUM_ROWS - 1) * NUM_COLS], blank, NUM_COLS);
+    memory::set16(&text_vram[(NUM_ROWS - 1) * NUM_COLS], blank, NUM_COLS);
 
     cursor.y = NUM_ROWS - 1;
   }
@@ -140,7 +140,7 @@ void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
 
-  memory::set(text_vram, blank, NUM_COLS * NUM_ROWS - 1);
+  memory::set16(text_vram, blank, NUM_COLS * NUM_ROWS - 1);
   cursor.Reset();
   cursor.Move();
 }
