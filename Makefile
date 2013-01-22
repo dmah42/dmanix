@@ -31,7 +31,7 @@ update_image: $(EXECUTABLE) $(MODULES)
 	@echo Updating floppy.img
 	@./update.sh
 
-test:
+test: FORCE_CHECK
 	@make -C test
 
 clean:
@@ -58,5 +58,8 @@ $(OBJDIR)/%.o: %.s
 initrd: $(INITRD_BUILD) initrd_index
 	$(INITRD_BUILD) initrd_index
 
-$(INITRD_BUILD):
+$(INITRD_BUILD): FORCE_CHECK
 	@make -C tools initrd_build
+
+FORCE_CHECK:
+	true
