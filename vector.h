@@ -71,7 +71,7 @@ T vector<T, N>::pop_front() {
   
 template <typename T, uint32_t N>
 T vector<T, N>::pop_back() {
-  ASSERT(size > 0);
+  ASSERT(size_ > 0);
   --size_;
   return array_[size_];
 }
@@ -84,17 +84,17 @@ void vector<T, N>::insert(size_t index, const T& t) {
     array_[i] = array_[i - 1];
   }
   array_[index] = t;
-  ++size;
+  ++size_;
 }
 
 template <typename T, uint32_t N>
 void vector<T, N>::remove(size_t index) {
   ASSERT(index < N);
-  ASSERT(size > 0);
+  ASSERT(size_ > 0);
   for (uint32_t i = index; i < size_; ++i) {
     array_[i] = array_[i + 1];
   }
-  --size;
+  --size_;
 }
 
 template <typename T, uint32_t N>
