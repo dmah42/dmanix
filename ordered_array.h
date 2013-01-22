@@ -15,9 +15,6 @@ class OrderedArray {
   typedef bool (*Predicate)(const T&, const T&);
   
   OrderedArray(void* array, uint32_t capacity, Predicate predicate);
-//  static OrderedArray Create(void* array,
-//                            uint32_t capacity,
-//                            Predicate predicate);
 
   void Insert(const T& item);
   const T& Lookup(uint32_t i) const;
@@ -32,23 +29,6 @@ class OrderedArray {
   uint32_t size;
   uint32_t capacity;
 };
-
-// static
-// TODO: specialize for pointer type
-/*
-template<typename T>
-OrderedArray<T> OrderedArray<T>::Create(void* array,
-                                      uint32_t capacity,
-                                      Predicate predicate) {
-  OrderedArray<T> list;
-  list.array = (T*) array;
-  memory::set(array, 0, capacity * sizeof(T));
-  list.size = 0;
-  list.capacity = capacity;
-  list.predicate = predicate;
-  return list;
-}
-*/
 
 template<typename T>
 OrderedArray<T>::OrderedArray(void* array, uint32_t capacity, Predicate predicate)

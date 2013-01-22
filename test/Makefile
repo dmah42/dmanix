@@ -19,7 +19,7 @@ GTEST_LIB = libgtest.a
 all: $(EXECUTABLE)
 
 clean:
-	-rm $(OBJECTS) $(OBJDIR)/gtest-all.o $(GTEST_LIB) $(EXECUTABLE)
+	@-rm -f $(OBJECTS) $(OBJDIR)/gtest-all.o $(GTEST_LIB) $(EXECUTABLE)
 
 $(GTEST_LIB): | $(OBJDIR)
 	$(CC) -I$(GTEST_DIR)/include -I$(GTEST_DIR) -c $(GTEST_DIR)/src/gtest-all.cc -o $(OBJDIR)/gtest-all.o
