@@ -158,21 +158,6 @@ void FreeFrame(Page* page) {
   page->frame = 0;
 }
 
-Page* GetPage(uint32_t address, bool make, Directory* dir) {
-  address = ADDR_TO_FRAME(address);
-  uint32_t table_index = address / 1024;
-
-  if (dir->tables[table_index] == NULL && make) {
-    uint32_t tmp;
-    void* table_mem = kalloc_pa(sizeof(Table), &tmp);
-    dir->tables[table_index] = new (table_mem) Table();
-    dir->physical[table_index] = tmp | 0x7;
-  }
-
-  ASSERT(dir->tables[table_index] != NULL);
-  return &dir->tables[table_index]->pages[address%1024];
-}
-
 void Initialize() {
   num_frames = mem_end / 0x1000;
   frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
@@ -187,7 +172,7 @@ void Initialize() {
   // Call GetPage but not AllocFrame. Tables can be created where necessary and
   // we can't allocate frames as they need to be identity mapped below.
   for (uint32_t i = KHEAP_START; i < KHEAP_END; i += 0x1000)
-    GetPage(i, true, kernel_directory);
+    kernel_directory->GetPage(i, true);
 
   // We need to identity map (phys addr = virt addr) from 0x0 to the end of
   // used memory, so we can access this transparently as if paging wasn't
@@ -195,11 +180,11 @@ void Initialize() {
   // calling kalloc().
   // Allocate a bit extra so the kernel heap can be initialised properly.
   for (uint32_t i = 0x0; i < 0x400000 /*base_address + 0x1000*/; i += 0x1000)
-    AllocFrame(GetPage(i, true, kernel_directory), false, false);
+    AllocFrame(kernel_directory->GetPage(i, true), false, false);
 
   // Allocate the pages we mapped
   for (uint32_t i = KHEAP_START; i < KHEAP_END; i += 0x1000)
-    AllocFrame(GetPage(i, true, kernel_directory), false, false);
+    AllocFrame(kernel_directory->GetPage(i, true), false, false);
 
   // TODO: interrupt constants
   isr::RegisterHandler(14, PageFault);
@@ -226,7 +211,7 @@ void Shutdown() {
 }
 
 uint32_t GetPhysicalAddress(uint32_t address) {
-  Page* page = GetPage(address, false, kernel_directory);
+  Page* page = current_directory->GetPage(address, false);
   return FRAME_TO_ADDR(page->frame) + (address & 0x0FFF);
 }
 
@@ -270,6 +255,21 @@ Directory* Directory::Clone() {
   }
 
   return dir;
+}
+
+Page* Directory::GetPage(uint32_t address, bool make) {
+  address = ADDR_TO_FRAME(address);
+  uint32_t table_index = address / 1024;
+
+  if (tables[table_index] == NULL && make) {
+    uint32_t tmp;
+    void* table_mem = kalloc_pa(sizeof(Table), &tmp);
+    tables[table_index] = new (table_mem) Table();
+    physical[table_index] = tmp | 0x7;
+  }
+
+  ASSERT(tables[table_index] != NULL);
+  return &tables[table_index]->pages[address%1024];
 }
 
 Table* Table::Clone(uint32_t* physical) {

@@ -5,12 +5,15 @@
 
 namespace memory {
 
+struct Page;
 struct Table;
 struct Directory {
   Directory();
   ~Directory();
 
   Directory* Clone();
+
+  Page* GetPage(uint32_t address, bool make);
 
   Table* tables[1024];
   uint32_t physical[1024];

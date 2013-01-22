@@ -2,12 +2,13 @@
 
 #include <new>
 
+#include "memory/paging.h"
+
 #define HEAP_INDEX_SIZE     0x20000
 #define HEAP_MAGIC          0x1FF
 #define HEAP_MIN_SIZE       0x70000
 
 namespace memory {
-struct Directory;
 struct Page;
 
 extern Directory* kernel_directory;
@@ -303,7 +304,7 @@ void Heap::Expand(uint32_t new_size) {
   uint32_t i = old_size;
   while (i < new_size) {
     memory::AllocFrame(
-        memory::GetPage(start_address + i, true, memory::kernel_directory),
+        memory::kernel_directory->GetPage(start_address + i, true),
         supervisor, readonly);
     i += 0x1000;
   }
@@ -325,7 +326,7 @@ uint32_t Heap::Contract(uint32_t new_size) {
   uint32_t i = old_size - 0x1000;
   while (new_size < i) {
     memory::FreeFrame(
-        memory::GetPage(start_address + i, false, memory::kernel_directory));
+        memory::kernel_directory->GetPage(start_address + i, false));
     i -= 0x1000;
   }
   end_address = start_address + new_size;

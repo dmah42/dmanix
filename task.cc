@@ -64,7 +64,7 @@ void MoveStack(void* new_stack, uint32_t size) {
        i >= (uint32_t) new_stack - size;
        i -= 0x1000) {
     memory::AllocFrame(
-        memory::GetPage(i, true, memory::current_directory), false, true);
+        memory::current_directory->GetPage(i, true), false, true);
   }
 
   // Flush the TLB
