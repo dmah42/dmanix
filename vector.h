@@ -23,6 +23,9 @@ class vector {
   T pop_front();
   T pop_back();
 
+  void insert(size_t index, const T& t);
+  void remove(size_t index);
+
   const T& at(size_t index) const;
 
   const T& front() const { return at(0); }
@@ -49,12 +52,7 @@ vector<T, N>::~vector() {
 
 template <typename T, uint32_t N>
 void vector<T, N>::push_front(const T& t) {
-  ASSERT(size_ < N);
-  for (uint32_t i = size_; i > 0; --i) {
-    array_[i] = array_[i - 1];
-  }
-  array_[0] = t;
-  ++size_;
+  insert(0, t);
 }
 
 template <typename T, uint32_t N>
@@ -66,18 +64,37 @@ void vector<T, N>::push_back(const T& t) {
 
 template <typename T, uint32_t N>
 T vector<T, N>::pop_front() {
-  T ret = array_[0];
-  for (uint32_t i = 0; i < size_ - 1; ++i) {
-    array_[i] = array_[i + 1];
-  }
-  --size_;
+  T ret = front();
+  remove(0);
   return ret;
 }
   
 template <typename T, uint32_t N>
 T vector<T, N>::pop_back() {
+  ASSERT(size > 0);
   --size_;
   return array_[size_];
+}
+
+template <typename T, uint32_t N>
+void vector<T, N>::insert(size_t index, const T& t) {
+  ASSERT(index < N);
+  ASSERT(size_ < N);
+  for (uint32_t i = size_; i > index; --i) {
+    array_[i] = array_[i - 1];
+  }
+  array_[index] = t;
+  ++size;
+}
+
+template <typename T, uint32_t N>
+void vector<T, N>::remove(size_t index) {
+  ASSERT(index < N);
+  ASSERT(size > 0);
+  for (uint32_t i = index; i < size_; ++i) {
+    array_[i] = array_[i + 1];
+  }
+  --size;
 }
 
 template <typename T, uint32_t N>
