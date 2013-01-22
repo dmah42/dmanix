@@ -25,19 +25,19 @@ CXXFLAGS = -Wall -Werror -Wextra -O0 -iquote. \
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
-all: test update_image 
+all: test update_image
 
-update_image: $(EXECUTABLE) $(MODULES) 
+update_image: $(EXECUTABLE) $(MODULES)
 	@echo Updating floppy.img
 	@./update.sh
 
 test: FORCE_CHECK
-	@make -C test
+	@+make -C test
 
 clean:
 	-rm $(OBJECTS) $(EXECUTABLE)
-	@make -C tools clean
-	@make -C test clean
+	@+make -C tools clean
+	@+make -C test clean
 
 $(EXECUTABLE): $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
@@ -59,7 +59,7 @@ initrd: $(INITRD_BUILD) initrd_index
 	$(INITRD_BUILD) initrd_index
 
 $(INITRD_BUILD): FORCE_CHECK
-	@make -C tools initrd_build
+	@+make -C tools initrd_build
 
 FORCE_CHECK:
 	@true
