@@ -25,7 +25,11 @@ CXXFLAGS = -Wall -Werror -Wextra -O0 -iquote. \
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
-all: $(EXECUTABLE) $(MODULES)
+all: test update_image 
+
+update_image: $(EXECUTABLE) $(MODULES) 
+	@echo Updating floppy.img
+	@./update.sh
 
 test:
 	@make -C test
@@ -33,6 +37,7 @@ test:
 clean:
 	-rm $(OBJECTS) $(EXECUTABLE)
 	@make -C tools clean
+	@make -C test clean
 
 $(EXECUTABLE): $(OBJECTS)
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
