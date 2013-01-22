@@ -62,4 +62,4 @@ $(INITRD_BUILD): FORCE_CHECK
 	@make -C tools initrd_build
 
 FORCE_CHECK:
-	true
+	@true
