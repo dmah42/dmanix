@@ -3,13 +3,7 @@
 #include <string.h>
 #include "gtest/gtest.h"
 
-class allocator {
- public:
-  static void* alloc(uint32_t n) { return ::malloc(n); }
-  static void free(void* p) { ::free(p); }
-};
-
-typedef vector<int32_t, 10, allocator> test_vector;
+typedef vector<int32_t, 10> test_vector;
 
 TEST(vector, ctor) {
   test_vector v;
@@ -43,7 +37,7 @@ TEST(vector, pop_back) {
   EXPECT_EQ(0, v.back());
   EXPECT_EQ(0, v.pop_back());
   EXPECT_EQ(0U, v.size());
-  EXPECT_EQ(true, v.empty());
+  EXPECT_TRUE(v.empty());
 }
 
 TEST(vector, push_front) {
@@ -73,5 +67,5 @@ TEST(vector, pop_front) {
   EXPECT_EQ(2, v.front());
   EXPECT_EQ(2, v.pop_front());
   EXPECT_EQ(0U, v.size());
-  EXPECT_EQ(true, v.empty());
+  EXPECT_TRUE(v.empty());
 }

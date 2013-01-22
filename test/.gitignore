@@ -1,2 +1,3 @@
+*.o
 libgtest.a
 test_all

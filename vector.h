@@ -9,12 +9,14 @@
 #define ASSERT assert
 #endif
 
+#include "memory/kalloc.h"
+
 // Fixed capacity vector.
 template <typename T, uint32_t N>
-class vector_base {
+class vector {
  public:
-  vector_base();
-  ~vector_base();
+  vector();
+  ~vector();
 
   void push_front(const T& t);
   void push_back(const T& t);
@@ -29,25 +31,24 @@ class vector_base {
   size_t size() const { return size_; }
   bool empty() const { return size() == 0U; }
 
- protected:
-  T* array_;
-
  private:
+  T* array_;
   uint32_t size_;
 };
 
 template <typename T, uint32_t N>
-vector_base<T, N>::vector_base()
-    : array_(NULL),
+vector<T, N>::vector()
+    : array_((T*) kalloc(N)),
       size_(0) {
 }
 
 template <typename T, uint32_t N>
-vector_base<T, N>::~vector_base() {
+vector<T, N>::~vector() {
+  kfree(array_);
 }
 
 template <typename T, uint32_t N>
-void vector_base<T, N>::push_front(const T& t) {
+void vector<T, N>::push_front(const T& t) {
   ASSERT(size_ < N);
   for (uint32_t i = size_; i > 0; --i) {
     array_[i] = array_[i - 1];
@@ -57,14 +58,14 @@ void vector_base<T, N>::push_front(const T& t) {
 }
 
 template <typename T, uint32_t N>
-void vector_base<T, N>::push_back(const T& t) {
+void vector<T, N>::push_back(const T& t) {
   ASSERT(size_ < N);
   array_[size_] = t;
   ++size_;
 }
 
 template <typename T, uint32_t N>
-T vector_base<T, N>::pop_front() {
+T vector<T, N>::pop_front() {
   T ret = array_[0];
   for (uint32_t i = 0; i < size_ - 1; ++i) {
     array_[i] = array_[i + 1];
@@ -74,25 +75,15 @@ T vector_base<T, N>::pop_front() {
 }
   
 template <typename T, uint32_t N>
-T vector_base<T, N>::pop_back() {
+T vector<T, N>::pop_back() {
   --size_;
   return array_[size_];
 }
 
 template <typename T, uint32_t N>
-const T& vector_base<T, N>::at(size_t index) const {
+const T& vector<T, N>::at(size_t index) const {
   ASSERT(index < size_);
   return array_[index];
 }
-
-// vector specialized with allocator
-template <typename T, uint32_t N, typename A>
-class vector : public vector_base<T, N> {
- public:
-  typedef vector_base<T, N> super;
-
-  vector() { super::array_ = (T*) A::alloc(N); }
-  ~vector() { A::free(super::array_); }
-};
 
 #endif  // VECTOR_H
