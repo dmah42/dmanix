@@ -1,3 +1,4 @@
+*.d
 *.o
 libgtest.a
 test_all
