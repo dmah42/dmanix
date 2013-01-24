@@ -3,6 +3,7 @@
 #include <new>
 
 #include "base/array_size.h"
+#include "bitset.h"
 #include "interrupt/isr.h"
 #include "memory/heap.h"
 #include "memory/memory.h"
@@ -53,50 +54,10 @@ namespace {
 const uint32_t mem_end = 0x1000000;
 
 // bitset of used/free frames
-// TODO: class
-uint32_t* frames;
-uint32_t num_frames;
-
-#define INDEX_FROM_BIT(a)   (a/(8*4))
-#define BIT_FROM_INDEX(a)   (a*4*8)
-#define OFFSET_FROM_BIT(a)  (a%(8*4))
+bitset* frames;
 
 #define FRAME_TO_ADDR(f)    (f*0x1000)
 #define ADDR_TO_FRAME(a)    (a/0x1000)
-
-void SetFrame(uint32_t addr) {
-  uint32_t frame = ADDR_TO_FRAME(addr);
-  uint32_t index = INDEX_FROM_BIT(frame);
-  uint32_t offset = OFFSET_FROM_BIT(frame);
-  frames[index] |= (0x1 << offset);
-}
-
-void ClearFrame(uint32_t addr) {
-  uint32_t frame = ADDR_TO_FRAME(addr);
-  uint32_t index = INDEX_FROM_BIT(frame);
-  uint32_t offset = OFFSET_FROM_BIT(frame);
-  frames[index] &= ~(0x1 << offset);
-}
-
-bool TestFrame(uint32_t addr) {
-  uint32_t frame = ADDR_TO_FRAME(addr);
-  uint32_t index = INDEX_FROM_BIT(frame);
-  uint32_t offset = OFFSET_FROM_BIT(frame);
-  return (frames[index] & (0x1 << offset)) != 0;
-}
-
-uint32_t FindFrame() {
-  for (uint32_t i = 0; i < INDEX_FROM_BIT(num_frames); ++i) {
-    if (frames[i] == (uint32_t) -1)
-      continue;
-    for (uint32_t j = 0; j < 32; ++j) {
-      uint32_t to_test = 0x1 << j;
-      if ((frames[i] & to_test) == 0)
-        return BIT_FROM_INDEX(i) + j;
-    }
-  }
-  return (uint32_t) -1;
-}
 
 void SwitchPageDirectory(Directory* dir) {
   current_directory = dir;
@@ -139,9 +100,9 @@ void AllocFrame(Page* page, bool is_kernel, bool is_writeable) {
   if (page->frame != 0)
     return;
 
-  uint32_t index = FindFrame();
+  uint32_t index = frames->next();
   ASSERT(index != (uint32_t) -1);
-  SetFrame(FRAME_TO_ADDR(index));
+  frames->set(index);
   page->present = 1;
   page->rw = is_writeable ? 1 : 0;
   page->user = is_kernel ? 0 : 1;
@@ -154,14 +115,14 @@ void FreeFrame(Page* page) {
   if (frame == 0)
     return;
 
-  ClearFrame(frame);
+  frames->clear(ADDR_TO_FRAME(frame));
   page->frame = 0;
 }
 
 void Initialize() {
-  num_frames = mem_end / 0x1000;
-  frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
-  memory::set8((uint8_t*) frames, 0, INDEX_FROM_BIT(num_frames));
+  uint32_t num_frames = mem_end / 0x1000;
+  void* frames_mem = kalloc(sizeof(bitset));
+  frames = new (frames_mem) bitset(num_frames);
 
   // Create the page directory
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
@@ -204,6 +165,7 @@ void Shutdown() {
   kernel_directory->~Directory();
   kfree(kernel_directory);
 
+  frames->~bitset();
   kfree(frames);
 
   isr::UnregisterHandler(14, PageFault);
