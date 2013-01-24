@@ -3,7 +3,7 @@ OBJDIR = obj
 CC = g++
 AR = ar
 
-CC_SOURCES := $(wildcard *.cc)
+CC_SOURCES := $(wildcard *.cc) ../bitset.cc ../memory/memory.cc
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
 CC_DEPS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.d))

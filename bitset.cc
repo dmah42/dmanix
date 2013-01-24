@@ -8,8 +8,8 @@
 #define OFFSET_FROM_BIT(a)  (a%(8*4))
 
 bitset::bitset(uint32_t num_frames) : num_frames(num_frames) {
-  frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames));
-  memory::set8((uint8_t*) frames, 0, INDEX_FROM_BIT(num_frames));
+  frames = (uint32_t*) kalloc(INDEX_FROM_BIT(num_frames) * sizeof(uint32_t));
+  memory::set32(frames, 0, INDEX_FROM_BIT(num_frames));
 }
 
 bitset::~bitset() {
