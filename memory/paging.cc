@@ -166,7 +166,6 @@ void Initialize() {
   // Create the page directory
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
   kernel_directory = new (kernel_directory_mem) Directory();
-  kernel_directory->physicalAddress = (uint32_t) kernel_directory->physical;
 
   // Map pages in the kernel heap area.
   // Call GetPage but not AllocFrame. Tables can be created where necessary and
@@ -218,6 +217,7 @@ uint32_t GetPhysicalAddress(uint32_t address) {
 Directory::Directory() : physicalAddress(0) {
   memory::set8((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
   memory::set8((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
+  physicalAddress = (uint32_t) physical;
 }
 
 Directory::~Directory() {
