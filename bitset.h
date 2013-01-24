@@ -14,9 +14,11 @@ class bitset {
 
   uint32_t next() const;
 
+  static const uint32_t NOT_FOUND = (uint32_t) -1;
+
  private:
-  uint32_t* frames;
-  uint32_t num_frames;
+  uint32_t* table;
+  uint32_t size;
 };
 
 #endif  // BITSET_H

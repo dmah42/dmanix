@@ -101,7 +101,7 @@ void AllocFrame(Page* page, bool is_kernel, bool is_writeable) {
     return;
 
   uint32_t index = frames->next();
-  ASSERT(index != (uint32_t) -1);
+  ASSERT(index != bitset::NOT_FOUND);
   frames->set(index);
   page->present = 1;
   page->rw = is_writeable ? 1 : 0;
