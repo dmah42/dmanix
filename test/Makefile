@@ -3,7 +3,7 @@ OBJDIR = obj
 CC = g++
 AR = ar
 
-CC_SOURCES := $(wildcard *.cc) ../bitset.cc ../memory/memory.cc
+CC_SOURCES := $(wildcard *.cc) ../src/bitset.cc ../src/memory/memory.cc
 CC_OBJECTS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.o))
 OBJECTS := $(AS_OBJECTS) $(CC_OBJECTS)
 CC_DEPS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.d))
@@ -11,9 +11,9 @@ CC_DEPS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.d))
 GTEST_DIR = ../third_party/gtest-1.6.0
 
 CXXFLAGS = -Wall -O0 \
-					 -iquote.. -iquote$(GTEST_DIR)/include \
-					 -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
-				   -g
+		-iquote../src -iquote$(GTEST_DIR)/include \
+		-fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
+		-g
 EXECUTABLE = test_all
 GTEST_LIB = libgtest.a
 
