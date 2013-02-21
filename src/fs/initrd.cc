@@ -2,12 +2,12 @@
 
 #include "fs/fs.h"
 #include "fs/node.h"
+#include "initrd_build.h"
 #include "memory/kalloc.h"
 #include "memory/memory.h"
 #include "multiboot.h"
 #include "screen.h"
 #include "string.h"
-#include "tools/initrd_build.h"
 
 namespace initrd {
 namespace {
