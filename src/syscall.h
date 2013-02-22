@@ -10,6 +10,7 @@ namespace syscall {
 void Initialize();
 void Shutdown();
 
+// TODO: better way of declaring these
 DECL_SYSCALL1(puts, const char*)
 
 }  // namespace syscall

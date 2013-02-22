@@ -29,6 +29,7 @@ int _##fn(P1 p1, P2 p2) {                         \
 
 namespace syscall {
 
+// TODO: better way of registering these.
 DEFN_SYSCALL1(puts, 0, const char*)
 
 namespace {

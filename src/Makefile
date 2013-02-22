@@ -2,13 +2,15 @@ CC = g++
 AS = nasm
 LD = ld
 
-CXXFLAGS = -Wall -Werror -Wextra -O0 -iquote. -iquote../common \
+CXXFLAGS = -Wall -Werror -Wextra -iquote. -iquote../common \
 		-nostdlib -nodefaultlibs \
 		-fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti \
-		-m32 -g
+		-m32
+
 LDFLAGS=-Tlink.ld -melf_i386
 ASFLAGS=-felf
 
+# TODO: add debug/release to OBJDIR
 OBJDIR=../obj
 
 CC_SOURCES := $(wildcard *.cc) $(wildcard */*.cc)
@@ -21,11 +23,17 @@ CC_DEPS := $(addprefix $(OBJDIR)/,$(CC_SOURCES:.cc=.d))
 
 EXECUTABLE = ../kernel
 
-.PHONY: all clean
+.PHONY: all clean check_mode release debug
 
 .PRECIOUS: $(OBJDIR)/%.d
 
-all: $(EXECUTABLE)
+all: release
+
+release: CXXFLAGS += -DNDEBUG -O3
+release: $(EXECUTABLE)
+
+debug: CXXFLAGS += -DDEBUG -O0 -g
+debug: $(EXECUTABLE)
 
 clean:
 	-rm -f $(CC_DEPS) $(OBJECTS) $(EXECUTABLE)
