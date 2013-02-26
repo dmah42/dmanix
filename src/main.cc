@@ -35,8 +35,6 @@ int main() {
   asm volatile("sti");
   timer::Initialize(50);
 
-  //multiboot::Dump();
-
   ASSERT(mbd->mods_count > 0);
   const multiboot::Module* mod = (multiboot::Module*) mbd->mods_addr;
 
@@ -44,7 +42,7 @@ int main() {
   memory::base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
-  memory::Initialize();
+  memory::Initialize(mbd->mem_upper);
 
   task::Initialize();
 
@@ -60,6 +58,9 @@ int main() {
 
   syscall::Initialize();
 
+#ifdef DEBUG
+  multiboot::Dump();
+#endif
   // test::vga();
   // test::colors();
   // test::interrupt();

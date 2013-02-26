@@ -13,6 +13,7 @@
 extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 
 #define KHEAP_START         0xC0000000
+// TODO: Get this from initrd config
 // 4Mb initial heap
 #define KHEAP_INITIAL_SIZE  0x00400000
 #define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
@@ -49,9 +50,6 @@ Directory* kernel_directory = NULL;
 Heap* kheap = NULL;
 
 namespace {
-
-// TODO: Remove assumption of 16Mb
-const uint32_t mem_end = 0x1000000;
 
 // bitset of used/free frames
 bitset* frames;
@@ -119,8 +117,9 @@ void FreeFrame(Page* page) {
   page->frame = 0;
 }
 
-void Initialize() {
-  uint32_t num_frames = mem_end / 0x1000;
+void Initialize(uint32_t mem_end) {
+  screen::Printf("%d KB RAM detected.\n", mem_end);
+  uint32_t num_frames = (mem_end * 0x400) / 0x1000;
   void* frames_mem = kalloc(sizeof(bitset));
   frames = new (frames_mem) bitset(num_frames);
 

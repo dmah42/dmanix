@@ -20,7 +20,7 @@ struct Directory {
   uint32_t physicalAddress;
 };
 
-void Initialize();
+void Initialize(uint32_t mem_end);
 void Shutdown();
 
 uint32_t GetPhysicalAddress(uint32_t address);
