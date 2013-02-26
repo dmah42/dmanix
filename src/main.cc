@@ -42,6 +42,7 @@ int main() {
   memory::base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
+  // TODO: lower memory.
   memory::Initialize(mbd->mem_upper);
 
   task::Initialize();
@@ -81,7 +82,9 @@ int main() {
   memory::Shutdown();
   screen::puts("done.\n");
 
-  // kheap->Dump();
+#ifdef DEBUG
+  memory::kheap->Dump();
+#endif 
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Goodbye.\n");
