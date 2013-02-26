@@ -53,7 +53,7 @@ $(OBJDIR):
 
 $(OBJDIR)/%.d: %.cc
 	@mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) -MF$@ -MG -MM -MP -MT$(addprefix $(OBJDIR)/,$(<:.cc=.o)) $<
+	$(CC) $(CXXFLAGS) -MF$@ -MM -MP -MT$(addprefix $(OBJDIR)/,$(<:.cc=.o)) $<
 
 $(OBJDIR)/%.o: %.cc $(OBJDIR)/%.d
 	@mkdir -p $(dir $@)
