@@ -8,7 +8,7 @@ CXXFLAGS = -Wall -Werror -Wextra -iquote. -iquote../common \
 		-m32
 
 LDFLAGS=-Tlink.ld -melf_i386
-ASFLAGS=-felf
+ASFLAGS=-felf -w+orphan-labels
 
 # TODO: add debug/release to OBJDIR
 OBJDIR=../obj
