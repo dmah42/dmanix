@@ -8,6 +8,8 @@
 #define HEAP_MAGIC          0x1FF
 #define HEAP_MIN_SIZE       0x70000
 
+#define PAGE_ALIGN          0x1000
+
 namespace memory {
 struct Page;
 
@@ -90,9 +92,10 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
   // If we need to page align, make a new hole
   if (page_align && (orig_pos & 0xFFFFF000)) {
-    uint32_t new_location = orig_pos + 0x1000 - (orig_pos & 0x0FFF) - sizeof(Header);
+    uint32_t new_location = orig_pos + PAGE_ALIGN -
+        (orig_pos & (PAGE_ALIGN-1)) - sizeof(Header);
     Header* hole_header = (Header*) orig_pos;
-    hole_header->size = 0x1000 - (orig_pos & 0x0FFF) - sizeof(Header);
+    hole_header->size = PAGE_ALIGN - (orig_pos & (PAGE_ALIGN-1)) - sizeof(Header);
     hole_header->magic = HEAP_MAGIC;
     hole_header->is_hole = 1;
 
@@ -199,13 +202,13 @@ void Heap::Free(void* p) {
 void Heap::Dump() {
   screen::puts("Dumping Heap...\n");
   VisitAllHeaders(DumpHeader);
-  screen::puts("complete\n");
+  screen::puts("Dump complete\n");
 }
 
 void Heap::Verify() {
   screen::puts("Verifying Heap... ");
   VisitAllHeaders(VerifyHeader);
-  screen::puts("complete\n");
+  screen::puts("Verify complete\n");
 }
 
 // static
@@ -237,14 +240,14 @@ Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
       max_address(max),
       supervisor(supervisor),
       readonly(readonly) {
-  ASSERT(start%0x1000 == 0);
-  ASSERT(end_addr%0x1000 == 0);
+  ASSERT(start % PAGE_ALIGN == 0);
+  ASSERT(end_addr % PAGE_ALIGN == 0);
 
   // Allow for index array.
   start += sizeof(Header*) * HEAP_INDEX_SIZE;
   if ((start & 0xFFFFF000) != 0) {
     start &= 0xFFFFF000;
-    start += 0x1000;
+    start += PAGE_ALIGN;
   }
   start_address = start;
 
@@ -278,7 +281,7 @@ int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
       uint32_t location = (uint32_t) header;
       int32_t offset = 0;
       if (((location + sizeof(Header)) & 0xFFFFF000) != 0)
-        offset = 0x1000 - (location + sizeof(Header))%0x1000;
+        offset = PAGE_ALIGN - (location + sizeof(Header)) % PAGE_ALIGN;
       int32_t hole_size = (int32_t)header->size - offset;
       if (hole_size >= (int32_t) size)
         break;
@@ -295,7 +298,7 @@ void Heap::Expand(uint32_t new_size) {
 
   if ((new_size & 0xFFFFF000) != 0) {
     new_size &= 0xFFFFF000;
-    new_size += 0x1000;
+    new_size += PAGE_ALIGN;
   }
 
   ASSERT(start_address + new_size <= max_address);
@@ -306,7 +309,7 @@ void Heap::Expand(uint32_t new_size) {
     memory::AllocFrame(
         memory::kernel_directory->GetPage(start_address + i, true),
         supervisor, readonly);
-    i += 0x1000;
+    i += PAGE_ALIGN;
   }
   end_address = start_address + new_size;
 }
@@ -314,20 +317,20 @@ void Heap::Expand(uint32_t new_size) {
 uint32_t Heap::Contract(uint32_t new_size) {
   ASSERT(new_size < end_address - start_address);
 
-  if (new_size & 0x1000) {
-    new_size &= 0x1000;
-    new_size += 0x1000;
+  if (new_size & PAGE_ALIGN) {
+    new_size &= PAGE_ALIGN;
+    new_size += PAGE_ALIGN;
   }
 
   if (new_size < HEAP_MIN_SIZE)
     new_size = HEAP_MIN_SIZE;
 
   uint32_t old_size = end_address - start_address;
-  uint32_t i = old_size - 0x1000;
+  uint32_t i = old_size - PAGE_ALIGN;
   while (new_size < i) {
     memory::FreeFrame(
         memory::kernel_directory->GetPage(start_address + i, false));
-    i -= 0x1000;
+    i -= PAGE_ALIGN;
   }
   end_address = start_address + new_size;
   return new_size;
