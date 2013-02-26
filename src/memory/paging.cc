@@ -118,7 +118,7 @@ void FreeFrame(Page* page) {
 }
 
 void Initialize(uint32_t mem_end) {
-  screen::Printf("%d KB RAM detected.\n", mem_end);
+  screen::Printf("%d MB RAM detected.\n", mem_end / 0x400);
   uint32_t num_frames = (mem_end * 0x400) / 0x1000;
   void* frames_mem = kalloc(sizeof(bitset));
   frames = new (frames_mem) bitset(num_frames);
@@ -138,7 +138,7 @@ void Initialize(uint32_t mem_end) {
   // enabled. Inside the loop body we actually change base_address by
   // calling kalloc().
   // Allocate a bit extra so the kernel heap can be initialised properly.
-  for (uint32_t i = 0x0; i < 0x400000 /*base_address + 0x1000*/; i += 0x1000)
+  for (uint32_t i = 0x0; i < base_address + 0x1000; i += 0x1000)
     AllocFrame(kernel_directory->GetPage(i, true), false, false);
 
   // Allocate the pages we mapped
