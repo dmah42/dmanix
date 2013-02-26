@@ -1,6 +1,12 @@
 .PHONY: all test clean tools
 
-all: test update_image
+all: release
+
+release: BUILD_TYPE = release
+release: test update_image
+
+debug: BUILD_TYPE = debug
+debug: test update_image
 
 update_image: kernel initrd
 	@echo Updating floppy.img
@@ -13,7 +19,7 @@ tools:
 	@+make -C tools
 
 kernel:
-	@+make -C src
+	@+make -C src $(BUILD_TYPE)
 
 clean:
 	@+make -C tools clean
