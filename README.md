@@ -1,4 +1,4 @@
-dmaos
+dmanix
 =====
 It's an i386 OS.
 
@@ -6,9 +6,17 @@ One time setup:
 $ sudo mkdir /mnt/dmaos\_floppy
 
 To build:
-$ make
-$ update.sh
-$ run.sh
+$ make [debug|release]
+$ scripts/update.sh
+$ scripts/run.sh
+
+debug build defines DEBUG, release build defines NDEBUG
+
+To run the tests:
+$ test/test_all
+
+Before submitting:
+$ scripts/presubmit.sh
 
 Allowed c++ headers:
  <ciso646>

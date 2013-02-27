@@ -42,7 +42,7 @@ int main() {
   memory::base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
-  // TODO: lower memory.
+  // TODO(dominic): lower memory.
   memory::Initialize(mbd->mem_upper);
 
   task::Initialize();
@@ -73,7 +73,7 @@ int main() {
   // test::user_mode();
   // test::mode13();
 
-  // TODO: Launch executables
+  // TODO(dominic): Launch executables
 
   screen::puts("Shutting down... ");
   syscall::Shutdown();
@@ -84,12 +84,12 @@ int main() {
 
 #ifdef DEBUG
   memory::kheap->Dump();
-#endif 
+#endif
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Goodbye.\n");
 
   // Loop forever instead of exiting to halt.
-  for (;;);
+  for (;;) {}
   return 0;
 }

@@ -41,7 +41,7 @@ class vector {
 
 template <typename T, uint32_t N>
 vector<T, N>::vector()
-    : array_((T*) kalloc(N)),
+    : array_(reinterpret_cast<T*>(kalloc(N))),
       size_(0) {
 }
 
@@ -66,7 +66,7 @@ template <typename T, uint32_t N>
 T vector<T, N>::pop_front() {
   return remove(0);
 }
-  
+
 template <typename T, uint32_t N>
 T vector<T, N>::pop_back() {
   ASSERT(size_ > 0);

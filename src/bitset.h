@@ -5,7 +5,7 @@
 
 class bitset {
  public:
-  bitset(uint32_t n);
+  explicit bitset(uint32_t n);
   ~bitset();
 
   void set(uint32_t address);

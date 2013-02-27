@@ -12,34 +12,36 @@ int _##fn() {                                       \
   return a;                                         \
 }
 
-#define DEFN_SYSCALL1(fn, num, P1)                                  \
-int _##fn(P1 p1) {                                                  \
-  int a;                                                            \
-  asm volatile("int $0x80" : "=a" (a) : "0" (num), "b" ((int)p1));  \
-  return a;                                                         \
+#define DEFN_SYSCALL1(fn, num, P1)               \
+int _##fn(P1 p1) {                               \
+  int a;                                         \
+  asm volatile("int $0x80" : "=a" (a)            \
+      : "0" (num), "b" (static_cast<int>(p1)));  \
+  return a;                                      \
 }
 
-#define DEFN_SYSCALL2(fn, num, P1, P2)            \
-int _##fn(P1 p1, P2 p2) {                         \
-  int a;                                          \
-  asm volatile("int $0x80" : "=a" (a)             \
-      : "0" (num), "b" ((int)p1), "c" ((int)p2)); \
-  return a;                                       \
+#define DEFN_SYSCALL2(fn, num, P1, P2)           \
+int _##fn(P1 p1, P2 p2) {                        \
+  int a;                                         \
+  asm volatile("int $0x80" : "=a" (a)            \
+      : "0" (num),                               \
+        "b" (static_cast<int>(p1)),              \
+        "c" (static_cast<int>(p2)));             \
+  return a;                                      \
 }
 
 namespace syscall {
 
-// TODO: better way of registering these.
+// TODO(dominic): better way of registering these.
 DEFN_SYSCALL1(puts, 0, const char*)
 
 namespace {
 
-  // TODO: template magic thing here
 void* syscalls[] = {
-  (void*) &screen::puts
+  reinterpret_cast<void*>(&screen::puts)
 };
 
-void Handler(isr::Registers& regs) {
+void Handler(isr::Registers* regs) {
   ASSERT(regs.eax < ARRAY_SIZE(syscalls));
 
   void* location = syscalls[regs.eax];
