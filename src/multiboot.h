@@ -10,29 +10,27 @@ namespace multiboot {
 void Dump();
 
 enum Flag {
-  FLAG_MEM = 1 << 0, //0x001,
-  FLAG_DEVICE = 1 << 1, // 0x002,
-  FLAG_CMDLINE = 1 << 2, // 0x004,
-  FLAG_MODS = 1 << 3, // 0x008,
-  FLAG_AOUT = 1 << 4, // 0x010,
-  FLAG_ELF = 1 << 5, // 0x020,
-  FLAG_MMAP = 1 << 6, // 0x040,
-  FLAG_CONFIG = 1 << 7, // 0x080,
-  FLAG_LOADER = 1 << 8, // 0x100,
-  FLAG_APM = 1 << 9, // 0x200,
-  FLAG_VBE = 1 << 10, // 0x400
+  FLAG_MEM = 1 << 0,
+  FLAG_DEVICE = 1 << 1,
+  FLAG_CMDLINE = 1 << 2,
+  FLAG_MODS = 1 << 3,
+  FLAG_AOUT = 1 << 4,
+  FLAG_ELF = 1 << 5,
+  FLAG_MMAP = 1 << 6,
+  FLAG_CONFIG = 1 << 7,
+  FLAG_LOADER = 1 << 8,
+  FLAG_APM = 1 << 9,
+  FLAG_VBE = 1 << 10,
 };
 
-struct AOUTSymbolTable
-{
+struct AOUTSymbolTable {
   uint32_t tabsize;
   uint32_t strsize;
   uint32_t addr;
   uint32_t reserved;
 } __attribute__((packed));
 
-struct ELFSectionHeaderTable
-{
+struct ELFSectionHeaderTable {
   uint32_t num;
   uint32_t size;
   uint32_t addr;

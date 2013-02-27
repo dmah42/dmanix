@@ -31,10 +31,10 @@ struct Registers {
   uint32_t eip, cs, eflags, useresp, ss;
 };
 
-typedef void (*Handler)(Registers*);
+typedef void (*Handler)(Registers* regs);
 void RegisterHandler(Interrupt interrupt, Handler h);
 void UnregisterHandler(Interrupt interrupt, Handler h);
 
-}
+}  // namespace isr
 
 #endif  // ISR_H
