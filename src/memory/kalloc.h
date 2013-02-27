@@ -9,4 +9,7 @@ void* kalloc_p(uint32_t size, uint32_t* phys = NULL);
 void* kalloc_pa(uint32_t size, uint32_t* phys = NULL);
 void kfree(void* p);
 
+void* ualloc(uint32_t size);
+void ufree(void* p);
+
 #endif  // KALLOC_H

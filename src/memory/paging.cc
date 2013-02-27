@@ -14,10 +14,14 @@ extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 
 #define KHEAP_START         0xC0000000
 // TODO: Get this from initrd config
-// 4Mb initial heap
-#define KHEAP_INITIAL_SIZE  0x00400000
-#define KHEAP_END           (KHEAP_START + KHEAP_INITIAL_SIZE)
-#define KHEAP_MAX           0xCFFFF000
+#define KHEAP_INITIAL_SIZE  0x00100000  // 1Mb Kernel heap
+#define KHEAP_END           0xCFFFF000
+
+#define UHEAP_START         0xD0000000
+#define UHEAP_INITIAL_SIZE  0x00400000  // 4Mb User heap
+#define UHEAP_END           0xDFFFF000           
+
+#define PAGE_SIZE           0x1000
 
 namespace memory {
 
@@ -48,6 +52,7 @@ Directory* current_directory = NULL;
 Directory* kernel_directory = NULL;
 
 Heap* kheap = NULL;
+Heap* uheap = NULL;
 
 namespace {
 
@@ -118,8 +123,11 @@ void FreeFrame(Page* page) {
 }
 
 void Initialize(uint32_t mem_end) {
-  screen::Printf("%d MB RAM detected.\n", mem_end / 0x400);
-  uint32_t num_frames = (mem_end * 0x400) / 0x1000;
+  mem_end *= 1024;
+  // Align mem_end to PAGE_SIZE
+  mem_end -= mem_end % PAGE_SIZE;
+  screen::Printf("%d MB RAM detected.\n", mem_end / (1024 * 1024));
+  uint32_t num_frames = mem_end / PAGE_SIZE;
   void* frames_mem = kalloc(sizeof(bitset));
   frames = new (frames_mem) bitset(num_frames);
 
@@ -130,7 +138,10 @@ void Initialize(uint32_t mem_end) {
   // Map pages in the kernel heap area.
   // Call GetPage but not AllocFrame. Tables can be created where necessary and
   // we can't allocate frames as they need to be identity mapped below.
-  for (uint32_t i = KHEAP_START; i < KHEAP_END; i += 0x1000)
+  for (uint32_t i = KHEAP_START; i < KHEAP_END; i += PAGE_SIZE)
+    kernel_directory->GetPage(i, true);
+
+  for (uint32_t i = UHEAP_START; i < UHEAP_END; i += PAGE_SIZE)
     kernel_directory->GetPage(i, true);
 
   // We need to identity map (phys addr = virt addr) from 0x0 to the end of
@@ -138,12 +149,19 @@ void Initialize(uint32_t mem_end) {
   // enabled. Inside the loop body we actually change base_address by
   // calling kalloc().
   // Allocate a bit extra so the kernel heap can be initialised properly.
-  for (uint32_t i = 0x0; i < base_address + 0x1000; i += 0x1000)
+  for (uint32_t i = 0x0; i < base_address + PAGE_SIZE; i += PAGE_SIZE)
     AllocFrame(kernel_directory->GetPage(i, true), false, false);
 
   // Allocate the pages we mapped
-  for (uint32_t i = KHEAP_START; i < KHEAP_END; i += 0x1000)
+  for (uint32_t i = KHEAP_START; i < KHEAP_START + KHEAP_INITIAL_SIZE;
+       i += PAGE_SIZE) {
     AllocFrame(kernel_directory->GetPage(i, true), false, false);
+  }
+
+  for (uint32_t i = UHEAP_START; i < UHEAP_START + UHEAP_INITIAL_SIZE;
+       i += PAGE_SIZE) {
+    AllocFrame(kernel_directory->GetPage(i, true), false, true);
+  }
 
   // TODO: interrupt constants
   isr::RegisterHandler(14, PageFault);
@@ -151,14 +169,21 @@ void Initialize(uint32_t mem_end) {
   SwitchPageDirectory(kernel_directory);
 
   // Create the kernel heap
-  kheap = memory::Heap::Create(KHEAP_START, KHEAP_END, KHEAP_MAX, false, false);
+  kheap = memory::Heap::Create(KHEAP_START, KHEAP_START + KHEAP_INITIAL_SIZE,
+                               KHEAP_END, false, false);
+  uheap = memory::Heap::Create(UHEAP_START, UHEAP_START + UHEAP_INITIAL_SIZE,
+                               UHEAP_END, false, false);
 
   current_directory = kernel_directory->Clone();
   SwitchPageDirectory(current_directory);
 }
 
 void Shutdown() {
+  memory::Heap::Destroy(uheap);
+  uheap = NULL;
+
   memory::Heap::Destroy(kheap); 
+  kheap = NULL;
 
   // TODO: free all directories
   kernel_directory->~Directory();

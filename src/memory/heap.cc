@@ -29,7 +29,7 @@ Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
 // static
 void Heap::Destroy(Heap* heap) {
   heap->~Heap();
-  kfree(heap);
+  // Do not attempt to free heap. 'kheap' is non-null but not actually available.
 }
 
 void* Heap::Alloc(uint32_t size, bool page_align) {
