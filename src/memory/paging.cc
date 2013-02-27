@@ -72,15 +72,15 @@ void SwitchPageDirectory(Directory* dir) {
 }
 
 // TODO: mode 13 version
-void PageFault(isr::Registers& regs) {
+void PageFault(isr::Registers* regs) {
   uint32_t faulting_address;
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
 
-  bool present = !(regs.err_code & 0x1);
-  bool rw = regs.err_code & 0x2;
-  bool user = regs.err_code & 0x4;
-  bool reserved = regs.err_code & 0x8;
-  bool instruction = regs.err_code & 0x10;
+  bool present = !(regs->err_code & 0x1);
+  bool rw = regs->err_code & 0x2;
+  bool user = regs->err_code & 0x4;
+  bool reserved = regs->err_code & 0x8;
+  bool instruction = regs->err_code & 0x10;
 
   // Output error message to screen
   screen::SetColor(COLOR_BLACK, COLOR_DARK_RED);
@@ -92,7 +92,7 @@ void PageFault(isr::Registers& regs) {
   if (user) screen::puts("user-mode ");
   if (reserved) screen::puts("reserved ");
   if (instruction) screen::puts("instruction ");
-  screen::Printf(") at 0x%x - EIP: \n", faulting_address, regs.eip);
+  screen::Printf(") at 0x%x - EIP: \n", faulting_address, regs->eip);
   PANIC("Page fault"); 
 }
 

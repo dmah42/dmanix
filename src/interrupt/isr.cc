@@ -25,7 +25,7 @@ extern "C" {
 
 void isr_handler(isr::Registers regs) {
   if (isr::handlers[regs.int_no] != 0)
-    isr::handlers[regs.int_no](regs);
+    isr::handlers[regs.int_no](&regs);
   else {
     screen::SetColor(COLOR_BLACK, COLOR_DARK_GREEN);
     screen::puts("UNHANDLED INTERRUPT: ");
@@ -39,7 +39,7 @@ void isr_handler(isr::Registers regs) {
     screen::Printf(" EIP:\t0x%x CS:\t0x%x EFLAGS:\t0x%x USERESP:\t0x%x SS:\t0x%x\n",
                    regs.eip, regs.cs, regs.eflags, regs.useresp, regs.ss);
     screen::ResetColor();
-    for (;;);
+    for (;;) {}
   }
 }
 
@@ -50,7 +50,7 @@ void irq_handler(isr::Registers regs) {
   io::outb(0x20, 0x20);
 
   if (isr::handlers[regs.int_no] != NULL)
-    isr::handlers[regs.int_no](regs);
+    isr::handlers[regs.int_no](&regs);
 }
 
 }

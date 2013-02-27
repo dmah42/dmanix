@@ -12,7 +12,7 @@ namespace {
 uint32_t tick = 0;
 Callback callback = NULL;
 
-void OnTick(isr::Registers&) {
+void OnTick(isr::Registers*) {
   ++tick;
   task::Switch();
   if (callback != NULL)

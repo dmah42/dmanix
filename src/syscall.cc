@@ -12,12 +12,12 @@ int _##fn() {                                       \
   return a;                                         \
 }
 
-#define DEFN_SYSCALL1(fn, num, P1)               \
-int _##fn(P1 p1) {                               \
-  int a;                                         \
-  asm volatile("int $0x80" : "=a" (a)            \
-      : "0" (num), "b" (static_cast<int>(p1)));  \
-  return a;                                      \
+#define DEFN_SYSCALL1(fn, num, P1)                    \
+int _##fn(P1 p1) {                                    \
+  int a;                                              \
+  asm volatile("int $0x80" : "=a" (a)                 \
+      : "0" (num), "b" (reinterpret_cast<int>(p1)));  \
+  return a;                                           \
 }
 
 #define DEFN_SYSCALL2(fn, num, P1, P2)           \
@@ -25,8 +25,8 @@ int _##fn(P1 p1, P2 p2) {                        \
   int a;                                         \
   asm volatile("int $0x80" : "=a" (a)            \
       : "0" (num),                               \
-        "b" (static_cast<int>(p1)),              \
-        "c" (static_cast<int>(p2)));             \
+        "b" (reinterpret_cast<int>(p1)),         \
+        "c" (reinterpret_cast<int>(p2)));        \
   return a;                                      \
 }
 
@@ -42,12 +42,11 @@ void* syscalls[] = {
 };
 
 void Handler(isr::Registers* regs) {
-  ASSERT(regs.eax < ARRAY_SIZE(syscalls));
+  ASSERT(regs->eax < ARRAY_SIZE(syscalls));
 
-  void* location = syscalls[regs.eax];
+  void* location = syscalls[regs->eax];
 
   // Push all the parameters in the correct order.
-  int ret;
   asm volatile (" \
       push %1;    \
       push %2;    \
@@ -60,10 +59,9 @@ void Handler(isr::Registers* regs) {
       pop %%ebx;  \
       pop %%ebx;  \
       pop %%ebx"
-      : "=a" (ret)
-      : "r" (regs.edi), "r" (regs.esi), "r" (regs.edx), "r" (regs.ecx),
-        "r" (regs.ebx), "r" (location));
-  regs.eax = ret;
+      : "=a" (regs->eax)
+      : "r" (regs->edi), "r" (regs->esi), "r" (regs->edx), "r" (regs->ecx),
+        "r" (regs->ebx), "r" (location));
 }
 
 }  // namespace

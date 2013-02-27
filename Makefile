@@ -10,7 +10,7 @@ debug: test update_image
 
 update_image: kernel initrd
 	@echo Updating floppy.img
-	@./update.sh
+	@./scripts/update.sh
 
 test: 
 	@+make -C test
