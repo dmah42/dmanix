@@ -29,7 +29,7 @@ Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,
 // static
 void Heap::Destroy(Heap* heap) {
   heap->~Heap();
-  // Do not attempt to free heap. 'kheap' is non-null but not actually available.
+  // Do not attempt to free heap. 'kheap' is non-null but unavailable.
 }
 
 void* Heap::Alloc(uint32_t size, bool page_align) {
@@ -57,12 +57,13 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
     // If we didn't find ANY headers, we need to add one.
     if (idx == -1) {
-      Header* header = (Header*) old_end_address;
+      Header* header = reinterpret_cast<Header*>(old_end_address);
       header->magic = HEAP_MAGIC;
       header->size = new_length - old_length;
       header->is_hole = 1;
 
-      Footer* footer = (Footer*) (old_end_address + header->size - sizeof(Footer));
+      Footer* footer = reinterpret_cast<Footer*>(old_end_address +
+                                                 header->size - sizeof(Footer));
       footer->magic = HEAP_MAGIC;
       footer->size = header->size;
 
@@ -73,15 +74,16 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
       header->size += new_length - old_length;
 
       // Rewrite the footer
-      Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
+      Footer* footer = reinterpret_cast<Footer*>((uint32_t)header +
+                                                 header->size - sizeof(Footer));
       footer->size = header->size;
       footer->magic = HEAP_MAGIC;
     }
     // We now have enough space - recurse and try again.
     return Alloc(size, page_align);
   }
-  Header* orig_header = (Header*) index.Lookup(iterator);
-  uint32_t orig_pos = (uint32_t) orig_header;
+  Header* orig_header = index.Lookup(iterator);
+  uint32_t orig_pos = reinterpret_cast<uint32_t>(orig_header);
   uint32_t orig_size = orig_header->size;
   // Should we split the hole?
   if (orig_size - new_size < sizeof(Header) + sizeof(Footer)) {
@@ -92,14 +94,15 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
 
   // If we need to page align, make a new hole
   if (page_align && (orig_pos & 0xFFFFF000)) {
-    uint32_t new_location = orig_pos + PAGE_ALIGN -
-        (orig_pos & (PAGE_ALIGN-1)) - sizeof(Header);
-    Header* hole_header = (Header*) orig_pos;
-    hole_header->size = PAGE_ALIGN - (orig_pos & (PAGE_ALIGN-1)) - sizeof(Header);
+    uint32_t delta = PAGE_ALIGN - (orig_pos & (PAGE_ALIGN-1));
+    uint32_t new_location = orig_pos + delta - sizeof(Header);
+    Header* hole_header = reinterpret_cast<Header*>(orig_pos);
+    hole_header->size = delta - sizeof(Header);
     hole_header->magic = HEAP_MAGIC;
     hole_header->is_hole = 1;
 
-    Footer* hole_footer = (Footer*) ((uint32_t)new_location - sizeof(Footer));
+    Footer* hole_footer =
+        reinterpret_cast<Footer*>(new_location - sizeof(Footer));
     hole_footer->magic = HEAP_MAGIC;
     hole_footer->size = hole_header->size;
 
@@ -109,40 +112,48 @@ void* Heap::Alloc(uint32_t size, bool page_align) {
     index.Remove(iterator);
   }
 
-  Header* block_header = (Header*) orig_pos;
+  Header* block_header = reinterpret_cast<Header*>(orig_pos);
   block_header->magic = HEAP_MAGIC;
   block_header->is_hole = 0;
   block_header->size = new_size;
 
-  Footer* block_footer = (Footer*) (orig_pos + sizeof(Header) + size);
+  Footer* block_footer = reinterpret_cast<Footer*>(
+      orig_pos + sizeof(Header) + size);
   block_footer->magic = HEAP_MAGIC;
   block_footer->size = block_header->size;
 
   // Do we need a new hole after the block?
   if (orig_size - new_size > 0) {
-    Header* hole_header = (Header*) (orig_pos + sizeof(Header) + size + sizeof(Footer));
+    Header* hole_header = reinterpret_cast<Header*>(
+        orig_pos + sizeof(Header) + size + sizeof(Footer));
     hole_header->magic = HEAP_MAGIC;
     hole_header->is_hole = 1;
     hole_header->size = orig_size - new_size;
 
-    Footer* hole_footer = (Footer*) ((uint32_t)hole_header + orig_size - new_size - sizeof(Footer));
+    Footer* hole_footer = reinterpret_cast<Footer*>(
+        reinterpret_cast<uint32_t>(hole_header) + orig_size - new_size -
+        sizeof(Footer));
     if ((uint32_t)hole_footer < end_address) {
       hole_footer->magic = HEAP_MAGIC;
       hole_footer->size = hole_header->size;
     }
     index.Insert(hole_header);
   }
-  return (void*)((uint32_t)block_header + sizeof(Header));
+  return reinterpret_cast<void*>(
+      reinterpret_cast<uint32_t>(block_header) + sizeof(Header));
 }
 
 void Heap::Free(void* p) {
   if (p == NULL)
     return;
 
-  Header* header = (Header*) ((uint32_t) p - sizeof(Header));
+  Header* header = reinterpret_cast<Header*>(
+      reinterpret_cast<uint32_t>(p) - sizeof(Header));
   ASSERT(header->magic == HEAP_MAGIC);
 
-  Footer* footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
+  uint32_t header_addr = reinterpret_cast<uint32_t>(header);
+  Footer* footer = reinterpret_cast<Footer*>(
+      header_addr + header->size - sizeof(Footer));
   ASSERT(footer->magic == HEAP_MAGIC);
   ASSERT(footer->size == header->size);
 
@@ -151,34 +162,38 @@ void Heap::Free(void* p) {
   bool do_add = true;
 
   // Coalesce left
-  Footer* left_footer = (Footer*) ((uint32_t) header - sizeof(Footer));
-  Header* left_header = (Header*) ((uint32_t) header - left_footer->size);
+  Footer* left_footer = reinterpret_cast<Footer*>(header_addr - sizeof(Footer));
+  Header* left_header = reinterpret_cast<Header*>(
+      header_addr - left_footer->size);
   if (left_footer->magic == HEAP_MAGIC && left_header->is_hole == 1) {
     uint32_t cache_size = header->size;
     header = left_header;
     header->size += cache_size;
     footer->size = header->size;
     do_add = false;
+    header_addr = reinterpret_cast<uint32_t>(header);
   }
 
   // Coalesce right
   Header* right_header = (Header*) ((uint32_t)footer + sizeof(Footer));
   if (right_header->magic == HEAP_MAGIC && right_header->is_hole) {
     header->size += right_header->size;
-    Footer* right_footer = (Footer*)((uint32_t)right_header + right_header->size - sizeof(Footer));
+    Footer* right_footer = (Footer*)(
+        (uint32_t)right_header + right_header->size - sizeof(Footer));
     footer = right_footer;
     footer->size = header->size;
     uint32_t iterator = 0;
-    while ((iterator < index.get_size()) && index.Lookup(iterator) != right_header)
+    while (iterator < index.get_size() &&
+           index.Lookup(iterator) != right_header) {
       ++iterator;
+    }
 
     ASSERT(iterator < index.get_size());
-
     index.Remove(iterator);
   }
 
   // Can we contract?
-  if ((uint32_t)footer + sizeof(Footer) == end_address) {
+  if (reinterpret_cast<uint32_t>(footer) + sizeof(Footer) == end_address) {
     uint32_t old_length = end_address - start_address;
     uint32_t new_length = Contract((uint32_t)header - start_address);
     if (header->size - (old_length - new_length) > 0) {
@@ -188,8 +203,10 @@ void Heap::Free(void* p) {
       footer->size = header->size;
     } else {
       uint32_t iterator = 0;
-      while ((iterator < index.get_size()) && (index.Lookup(iterator) != right_header))
+      while (iterator < index.get_size() &&
+             index.Lookup(iterator) != right_header) {
         ++iterator;
+      }
       if (iterator < index.get_size())
         index.Remove(iterator);
     }
@@ -212,7 +229,7 @@ void Heap::Verify() {
 }
 
 // static
-bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {
+bool Heap::HeaderLessThan(Header* const& a, Header* const& b) {  // NOLINT
   return a->size < b->size;
 }
 
@@ -224,18 +241,19 @@ void Heap::DumpHeader(Header* header) {
   screen::Printf("  0x%x %c %u (0x%x)\n",
                  p, header->is_hole == 1 ? 'F' : 'A', size, size);
 }
- 
+
 // static
 void Heap::VerifyHeader(Header* header) {
   ASSERT(header->magic == HEAP_MAGIC);
-  Footer* f = (Footer*)((uint32_t) header + header->size - sizeof(Footer));
+  Footer* f = reinterpret_cast<Footer*>(
+      reinterpret_cast<uint32_t>(header) + header->size - sizeof(Footer));
   ASSERT(f->magic == HEAP_MAGIC);
   ASSERT(f->size == header->size);
 }
 
 Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
            bool supervisor, bool readonly)
-    : index((void*) start, HEAP_INDEX_SIZE, HeaderLessThan),
+    : index(reinterpret_cast<void*>(start), HEAP_INDEX_SIZE, HeaderLessThan),
       end_address(end_addr),
       max_address(max),
       supervisor(supervisor),
@@ -244,19 +262,20 @@ Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
   ASSERT(end_addr % PAGE_ALIGN == 0);
 
   // Allow for index array.
-  start += sizeof(Header*) * HEAP_INDEX_SIZE;
+  start += sizeof(Header*) * HEAP_INDEX_SIZE;  // NOLINT(runtime/sizeof)
   if ((start & 0xFFFFF000) != 0) {
     start &= 0xFFFFF000;
     start += PAGE_ALIGN;
   }
   start_address = start;
 
-  Header* hole = (Header*) start;
+  Header* hole = reinterpret_cast<Header*>(start);
   hole->size = end_addr - start;
   hole->magic = HEAP_MAGIC;
   hole->is_hole = 1;
 
-  Footer* hole_footer = (Footer*) (((uint32_t) hole) + hole->size - sizeof(Footer));
+  Footer* hole_footer = reinterpret_cast<Footer*>(
+      start + hole->size - sizeof(Footer));
   hole_footer->magic = HEAP_MAGIC;
   hole_footer->size = hole->size;
 
@@ -265,12 +284,12 @@ Heap::Heap(uint32_t start, uint32_t end_addr, uint32_t max,
 
 Heap::~Heap() {
   // Ensure everything has been freed.
-  // TODO: Reenable once task allocations are freed
-  //ASSERT(index.get_size() == 1);
-  //Header* hole = (Header*) index.Lookup(0);
-  //ASSERT(hole->magic == HEAP_MAGIC);
-  //ASSERT(hole->is_hole == 1);
-  //ASSERT(hole->size == end_address - start_address);
+  // TODO(dominic): Reenable once task allocations are freed
+  // ASSERT(index.get_size() == 1);
+  // Header* hole = (Header*) index.Lookup(0);
+  // ASSERT(hole->magic == HEAP_MAGIC);
+  // ASSERT(hole->is_hole == 1);
+  // ASSERT(hole->size == end_address - start_address);
 }
 
 int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
@@ -285,8 +304,9 @@ int32_t Heap::FindSmallestHole(uint32_t size, bool page_align) const {
       int32_t hole_size = (int32_t)header->size - offset;
       if (hole_size >= (int32_t) size)
         break;
-    } else if (header->size >= size)
+    } else if (header->size >= size) {
       break;
+    }
     ++iterator;
   }
 
@@ -336,10 +356,10 @@ uint32_t Heap::Contract(uint32_t new_size) {
   return new_size;
 }
 
-void Heap::VisitAllHeaders(void (*callback)(Header*)) {
+void Heap::VisitAllHeaders(void (*callback)(Header* h)) {
   uint32_t header_addr = start_address;
   while (header_addr < end_address) {
-    Header* header = (Header*) header_addr;
+    Header* header = reinterpret_cast<Header*>(header_addr);
     callback(header);
     header_addr += header->size;
   }

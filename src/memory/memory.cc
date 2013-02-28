@@ -49,4 +49,4 @@ uint32_t* set32(uint32_t* dest, uint32_t c, uint32_t n) {
   return set_internal(dest, c, n);
 }
 
-}  // endif memory
+}  // namespace memory

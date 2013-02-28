@@ -14,23 +14,23 @@ namespace {
 
 void* alloc_internal(Heap* heap, uint32_t size, bool page_align,
                      uint32_t* phys) {
+  uint32_t addr = 0;
   if (heap != NULL) {
-    uint32_t addr = (uint32_t) heap->Alloc(size, page_align);
+    addr = reinterpret_cast<uint32_t>(heap->Alloc(size, page_align));
     if (phys != NULL)
       *phys = GetPhysicalAddress(addr);
-    return (void*) addr;
   } else {
-    // TODO: align macro/method
+    // TODO(dominic): align macro/method
     if (page_align && (base_address & 0xFFFFF000) != 0) {
       base_address &= 0xFFFFF000;
       base_address += 0x1000;
     }
     if (phys != NULL)
       *phys = base_address;
-    uint32_t mem = base_address;
+    addr = base_address;
     base_address += size;
-    return (void*) mem;
   }
+  return reinterpret_cast<void*>(addr);
 }
 
 void free_internal(Heap* heap, void* p) {
@@ -43,7 +43,10 @@ void free_internal(Heap* heap, void* p) {
 }  // namespace
 }  // namespace memory
 
-using namespace memory;
+using memory::alloc_internal;
+using memory::free_internal;
+using memory::kheap;
+using memory::uheap;
 
 void* kalloc(uint32_t size) {
   return alloc_internal(kheap, size, false, NULL);

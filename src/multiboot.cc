@@ -42,7 +42,8 @@ void Dump() {
     ASSERT(!mbd->CheckFlag(multiboot::FLAG_ELF));
     multiboot::AOUTSymbolTable* aout_sym = &(mbd->u.aout_sym);
 
-    screen::Printf("aout_symbol_table: tabsize = 0x%x, strsize = 0x%x, addr = 0x%x\n",
+    screen::Printf("aout_symbol_table: tabsize = 0x%x, strsize = 0x%x, "
+                   "addr = 0x%x\n",
                    aout_sym->tabsize, aout_sym->strsize, aout_sym->addr);
   }
 
@@ -50,7 +51,8 @@ void Dump() {
   if (mbd->CheckFlag(multiboot::FLAG_ELF)) {
     multiboot::ELFSectionHeaderTable* elf_sec = &(mbd->u.elf_sec);
 
-    screen::Printf("elf_sec: num = %u, size = 0x%x, addr = 0x%x, shndx = 0x%x\n",
+    screen::Printf("elf_sec: num = %u, size = 0x%x, addr = 0x%x, "
+                   "shndx = 0x%x\n",
                    elf_sec->num, elf_sec->size, elf_sec->addr, elf_sec->shndx);
   }
 
@@ -58,10 +60,13 @@ void Dump() {
   if (mbd->CheckFlag(multiboot::FLAG_MMAP)) {
     screen::Printf("mmap_addr = 0x%x, mmap_length = 0x%x\n",
                    mbd->mmap_addr, mbd->mmap_length);
-    for (multiboot::MMapEntry* mmap = (multiboot::MMapEntry*) mbd->mmap_addr;
-        (uint64_t) mmap < mbd->mmap_addr + mbd->mmap_length;
-        mmap = (multiboot::MMapEntry*) ((uint64_t) mmap + mmap->size + sizeof(mmap->size))) {
-      screen::Printf(" size = 0x%x, base_addr = 0x%x%x, length = 0x%x%x, type = 0x%x\n",
+    for (MMapEntry* mmap = reinterpret_cast<MMapEntry*>(mbd->mmap_addr);
+        reinterpret_cast<uint64_t>(mmap) < mbd->mmap_addr + mbd->mmap_length;
+        mmap = reinterpret_cast<MMapEntry*>(
+            reinterpret_cast<uint64_t>(mmap) + mmap->size +
+            sizeof(mmap->size))) {
+      screen::Printf(" size = 0x%x, base_addr = 0x%x%x, length = 0x%x%x, "
+                     "type = 0x%x\n",
                      mmap->size, mmap->addr >> 32, mmap->addr & 0xFFFFFFFF,
                      mmap->len >> 32, mmap->len & 0xFFFFFFFF, mmap->type);
     }

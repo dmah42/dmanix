@@ -83,19 +83,21 @@ void MoveStack(void* new_stack, uint32_t size) {
   uint32_t new_base_ptr = old_base_ptr + offset;
 
   // copy the stack
-  memory::copy8((uint8_t*) new_stack_ptr, (const uint8_t*) old_stack_ptr,
+  memory::copy8(reinterpret_cast<uint8_t*>(new_stack_ptr),
+                reinterpret_cast<const uint8_t*>(old_stack_ptr),
                 stack - old_stack_ptr);
-  
+
   // Backtrace through the original stack, copying new values into the new
   // stack.
-  for (uint32_t i = (uint32_t) new_stack; i >= (uint32_t) new_stack - size;
-       i -= 4) {
-    uint32_t tmp = *(uint32_t*) i;
+  for (uint32_t i = reinterpret_cast<uint32_t>(new_stack);
+       i >= reinterpret_cast<uint32_t>(new_stack) - size;
+       i -= sizeof(i)) {
+    uint32_t tmp = *reinterpret_cast<uint32_t*>(i);
     // If the value of tmp is within the old stack, assume it's a base pointer
     // and remap it.
     if ((old_stack_ptr < tmp) && (tmp < stack)) {
       tmp += offset;
-      uint32_t* tmp2 = (uint32_t*) i;
+      uint32_t* tmp2 = reinterpret_cast<uint32_t*>(i);
       *tmp2 = tmp;
     }
   }
@@ -111,11 +113,11 @@ void MoveStack(void* new_stack, uint32_t size) {
 void Initialize() {
   asm volatile("cli");
 
-  MoveStack((void*) 0xE0000000, 0x2000);
+  MoveStack(reinterpret_cast<void*>(0xE0000000), 0x2000);
 
   // Initialize the first (kernel) task
   void* current_mem = kalloc(sizeof(Task));
-  current = new (current_mem) Task(memory::current_directory);
+  current = new (current_mem) Task(memory::current_directory);  // NOLINT
   current->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
   queue = current;
 
@@ -141,14 +143,14 @@ uint32_t Fork() {
   memory::Directory* directory = memory::current_directory->Clone();
 
   // New process
-  // TODO: clean these tasks up once they complete.
+  // TODO(dominic): clean these tasks up once they complete.
   void* task_mem = kalloc(sizeof(Task));
-  Task* task = new (task_mem) Task(directory);
+  Task* task = new (task_mem) Task(directory);  // NOLINT
   task->stack = (uint32_t) kalloc_pa(KERNEL_STACK_SIZE);
 
   // add to the end of the queue
-  // TODO: track the end of the list
-  Task* it = (Task*) queue;
+  // TODO(dominic): track the end of the list
+  Task* it = queue;
   while (it->next != NULL)
     it = it->next;
   it->next = task;
@@ -243,11 +245,11 @@ void UserMode() {
   // 0x23 is user mode data segment selector (0x20 | 0x3) and 0x1B is user mode
   // code segment selector (0x18 | 0x3).
   // push $1f pushes the address of the 1: label.
-  // TODO: enable interrupts safely:
+  // TODO(dominic): enable interrupts safely:
   //
-  // pop %eax;         
-  // or %eax, $0x200;  
-  // push %eax;        
+  // pop %eax;
+  // or %eax, $0x200;
+  // push %eax;
   asm volatile("        \
       cli;              \
       mov $0x23, %ax;   \

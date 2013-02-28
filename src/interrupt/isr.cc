@@ -19,14 +19,13 @@ void UnregisterHandler(Interrupt interrupt, Handler h) {
   handlers[interrupt] = NULL;
 }
 
-}
+}  // namespace isr
 
 extern "C" {
-
 void isr_handler(isr::Registers regs) {
-  if (isr::handlers[regs.int_no] != 0)
+  if (isr::handlers[regs.int_no] != 0) {
     isr::handlers[regs.int_no](&regs);
-  else {
+  } else {
     screen::SetColor(COLOR_BLACK, COLOR_DARK_GREEN);
     screen::puts("UNHANDLED INTERRUPT: ");
     screen::SetColor(COLOR_WHITE, COLOR_BLACK);
@@ -36,7 +35,8 @@ void isr_handler(isr::Registers regs) {
     screen::Printf(" EBX:\t0x%x EDX:\t0x%x ECX:\t0x%x EAX:\t0x%x\n",
                    regs.ebx, regs.edx, regs.ecx, regs.eax);
     screen::Printf(" INTERRUPT: 0x%x ERR: 0x%x\n", regs.int_no, regs.err_code);
-    screen::Printf(" EIP:\t0x%x CS:\t0x%x EFLAGS:\t0x%x USERESP:\t0x%x SS:\t0x%x\n",
+    screen::Printf(" EIP:\t0x%x CS:\t0x%x EFLAGS:\t0x%x USERESP:\t0x%x "
+                   "SS:\t0x%x\n",
                    regs.eip, regs.cs, regs.eflags, regs.useresp, regs.ss);
     screen::ResetColor();
     for (;;) {}
@@ -52,6 +52,5 @@ void irq_handler(isr::Registers regs) {
   if (isr::handlers[regs.int_no] != NULL)
     isr::handlers[regs.int_no](&regs);
 }
-
 }
 

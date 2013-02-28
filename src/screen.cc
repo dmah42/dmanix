@@ -18,8 +18,8 @@ namespace screen {
 
 namespace {
 
-uint16_t* text_vram = (uint16_t*) 0xB8000;
-uint8_t* mode13_vram = (uint8_t*) 0xA0000;
+uint16_t* text_vram = reinterpret_cast<uint16_t*>(0xB8000);
+uint8_t* mode13_vram = reinterpret_cast<uint8_t*>(0xA0000);
 
 uint8_t back_color = COLOR_BLACK;
 uint8_t fore_color = COLOR_LIGHT_GREY;
@@ -72,9 +72,8 @@ void putc(char c) {
   else if (c == '\n') {
     cursor.x = 0;
     ++cursor.y;
-  }
-  // printables
-  else if (c >= ' ') {
+  } else if (c >= ' ') {
+    // printables
     const uint8_t attribute = (back_color << 4) | (fore_color & 0xF);
     uint16_t* video_mem_ptr = text_vram + (cursor.y * NUM_COLS + cursor.x);
     *video_mem_ptr = (attribute << 8) | c;
@@ -135,7 +134,7 @@ void putd(int32_t dec) {
   putu(dec);
 }
 
-// TODO: take care of which mode we're in.
+// TODO(dominic): take care of which mode we're in.
 void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
   const uint16_t blank = 0x20 | (default_attrib << 8);
@@ -151,11 +150,11 @@ void Printf(const char* format, ...) {
 
   char c;
   while ((c = *format++) != '\0') {
-    if (c != '%')
+    if (c != '%') {
       putc(c);
-    else {
+    } else {
       c = *format++;
-      switch(c) {
+      switch (c) {
         case 'c':
           putc(va_arg(ap, int));
           break;
@@ -211,9 +210,9 @@ void Mode13h() {
   io::outw(0x3D4, 0x0E11);  // enable regs 0-7
 
   for (uint32_t a = 0; a < 7; ++a)
-    io::outw(0x3D4, (uint16_t)((w[a]<<8) + hor_regs[a]));
+    io::outw(0x3D4, (uint16_t)((w[a] << 8) + hor_regs[a]));
   for (uint32_t a = 0; a < 8; ++a)
-    io::outw(0x3D4, (uint16_t)((h[a]<<8) + ver_regs[a]));
+    io::outw(0x3D4, (uint16_t)((h[a] << 8) + ver_regs[a]));
 
   io::outw(0x3D4, 0x0008);  // vert.panning = 0
 

@@ -36,8 +36,8 @@ void fork() {
 }
 
 void vga() {
-  screen::puts("0         1         2         3         4         5         6         7       \n");
-  screen::puts("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
+  screen::puts("0         1         2         3         4         5         6         7       \n");  // NOLINT
+  screen::puts("01234567890123456789012345678901234567890123456789012345678901234567890123456789");  // NOLINT
   screen::puts("2\n");
   screen::puts("3\n");
   screen::puts("4\n");
@@ -141,7 +141,7 @@ void mode13() {
     for (uint16_t y = 0; y < 200; ++y)
       screen::Pixel(x, y, COLOR_DARK_BLUE);
   screen::Line(0, 0, 320, 200, COLOR_WHITE);
-  for(;;);
+  for (;;) {}
 }
 
 void interrupt() {
@@ -154,7 +154,7 @@ void timer() {
 }
 
 void page_fault() {
-  uint32_t* ptr = (uint32_t*)0xA0000000;
+  uint32_t* ptr = reinterpret_cast<uint32_t*>(0xA0000000);
   uint32_t do_page_fault = *ptr;
   (void) do_page_fault;
 }
@@ -176,7 +176,7 @@ void memory() {
   void* d = kalloc(12);
   screen::Printf("d: 0x%x\n", d);
   screen::puts("freeing...\n");
-  kfree(d); 
+  kfree(d);
   screen::puts("freed\n");
 }
 
@@ -187,12 +187,12 @@ void initrd() {
   while ((node = fs::root->ReadDir(i)) != NULL) {
     screen::Printf("Found file: %s", node->name);
     fs::Node* fsnode = fs::root->FindDir(node->name);
-    if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY)
+    if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY) {
       screen::puts("\t(directory)\n");
-    else {
+    } else {
       screen::puts("\tcontents:\n\t\"");
       char buf[256];
-      fsnode->Read(0, sizeof(buf), (uint8_t*) buf);
+      fsnode->Read(0, sizeof(buf), reinterpret_cast<uint8_t*>(buf));
       screen::puts(buf);
       screen::puts("\"\n");
     }

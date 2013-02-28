@@ -8,7 +8,7 @@
 #define OFFSET_FROM_BIT(a)  (a%(8*4))
 
 bitset::bitset(uint32_t num_bits) : size(INDEX_FROM_BIT(num_bits)) {
-  table = (uint32_t*) kalloc(size * sizeof(uint32_t));
+  table = reinterpret_cast<uint32_t*>(kalloc(size * sizeof(uint32_t)));
   memory::set32(table, 0, size);
 }
 

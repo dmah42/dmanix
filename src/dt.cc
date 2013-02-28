@@ -5,7 +5,6 @@
 
 // Defined in interrupt.s and irq.s
 extern "C" {
-
 extern void gdt_flush(uint32_t);
 extern void idt_flush(uint32_t);
 extern void tss_flush();
@@ -60,7 +59,6 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
-
 }
 
 namespace dt {
@@ -91,11 +89,11 @@ struct GDTPointer {
 } __attribute__((packed));
 
 struct IDTEntry {
-  uint16_t base_low;  // The lower 16 bits of the address to jump to
-  uint16_t sel;       // kernel segment selector
+  uint16_t base_low;   // The lower 16 bits of the address to jump to
+  uint16_t sel;        // kernel segment selector
   uint8_t always0;
   uint8_t flags;
-  uint16_t base_high; // The high 16 bits of the address to jump to
+  uint16_t base_high;  // The high 16 bits of the address to jump to
 } __attribute__((packed));
 
 struct IDTPointer {
@@ -104,9 +102,10 @@ struct IDTPointer {
 } __attribute__((packed));
 
 struct TSSEntry {
-  uint32_t prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
-  uint32_t esp0;       // The stack pointer to load when we change to kernel mode.
-  uint32_t ss0;        // The stack segment to load when we change to kernel mode.
+  uint32_t prev_tss;   // Previous TSS - if we used hardware task switching
+                       // this would form a linked list.
+  uint32_t esp0;       // Stack pointer to load when changing to kernel mode.
+  uint32_t ss0;        // Stack segment to load when changing to kernel mode.
   uint32_t esp1;       // Unused...
   uint32_t ss1;
   uint32_t esp2;
@@ -122,12 +121,12 @@ struct TSSEntry {
   uint32_t ebp;
   uint32_t esi;
   uint32_t edi;
-  uint32_t es;         // The value to load into ES when we change to kernel mode.
-  uint32_t cs;         // The value to load into CS when we change to kernel mode.
-  uint32_t ss;         // The value to load into SS when we change to kernel mode.
-  uint32_t ds;         // The value to load into DS when we change to kernel mode.
-  uint32_t fs;         // The value to load into FS when we change to kernel mode.
-  uint32_t gs;         // The value to load into GS when we change to kernel mode.
+  uint32_t es;         // Value to load into ES when we change to kernel mode.
+  uint32_t cs;         // Value to load into CS when we change to kernel mode.
+  uint32_t ss;         // Value to load into SS when we change to kernel mode.
+  uint32_t ds;         // Value to load into DS when we change to kernel mode.
+  uint32_t fs;         // Value to load into FS when we change to kernel mode.
+  uint32_t gs;         // Value to load into GS when we change to kernel mode.
   uint32_t ldt;        // Unused...
   uint16_t trap;
   uint16_t iomap_base;
@@ -170,7 +169,7 @@ void WriteTSS(uint16_t ss0, uint32_t esp0) {
   uint32_t limit = base + sizeof(TSSEntry);
 
   SetGDTGate(SEGMENT_TSS, base, limit, 0xE9, 0x00);
-  memory::set8((uint8_t*) &tss_entry, 0, sizeof(TSSEntry));
+  memory::set8(reinterpret_cast<uint8_t*>(&tss_entry), 0, sizeof(TSSEntry));
 
   tss_entry.ss0 = ss0;
   tss_entry.esp0 = esp0;
@@ -180,7 +179,8 @@ void WriteTSS(uint16_t ss0, uint32_t esp0) {
   // kernel code/data segments (0x08, 0x10) but with the last two bits set (|
   // 0x3).
   tss_entry.cs = 0x08 | 0x03;
-  tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs = tss_entry.gs = 0x10 | 0x3;
+  tss_entry.ss = tss_entry.ds = tss_entry.es = tss_entry.fs =
+      tss_entry.gs = 0x10 | 0x3;
 }
 
 void InitGDT() {
@@ -188,7 +188,7 @@ void InitGDT() {
   gdt_pointer.base = (uint32_t)&gdt_entries;
 
   SetGDTGate(SEGMENT_NULL,      0,          0,    0,    0);
-  // TODO: set the flags more explicitly
+  // TODO(dominic): set the flags more explicitly
   SetGDTGate(SEGMENT_CODE,      0, 0xFFFFFFFF, 0x9A, 0xCF);
   SetGDTGate(SEGMENT_DATA,      0, 0xFFFFFFFF, 0x92, 0xCF);
   SetGDTGate(SEGMENT_USER_CODE, 0, 0xFFFFFFFF, 0xFA, 0xCF);
@@ -251,13 +251,13 @@ void InitIDT() {
   idt_pointer.limit = (sizeof(IDTEntry) * ARRAY_SIZE(idt_entries)) - 1;
   idt_pointer.base = (uint32_t)&idt_entries;
 
-  memory::set8((uint8_t*) idt_entries, 0,
+  memory::set8(reinterpret_cast<uint8_t*>(idt_entries), 0,
                sizeof(IDTEntry) * ARRAY_SIZE(idt_entries));
 
   // Remap IRQ table to avoid conflicts
   RemapPIC();
 
-  // TODO: better way
+  // TODO(dominic): better way
   SetIDTGate(0,  (uint32_t)isr0, 0x08, 0x8E);
   SetIDTGate(1,  (uint32_t)isr1, 0x08, 0x8E);
   SetIDTGate(2,  (uint32_t)isr2, 0x08, 0x8E);

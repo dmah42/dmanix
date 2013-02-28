@@ -13,7 +13,7 @@ template<typename T>
 class OrderedArray {
  public:
   typedef bool (*Predicate)(const T&, const T&);
-  
+
   OrderedArray(void* array, uint32_t capacity, Predicate predicate);
 
   void Insert(const T& item);
@@ -23,7 +23,6 @@ class OrderedArray {
   uint32_t get_size() const { return size; }
 
  private:
-
   T* array;
   Predicate predicate;
   uint32_t size;
@@ -31,12 +30,13 @@ class OrderedArray {
 };
 
 template<typename T>
-OrderedArray<T>::OrderedArray(void* array, uint32_t capacity, Predicate predicate)
-    : array((T*) array),
+OrderedArray<T>::OrderedArray(void* array, uint32_t capacity,
+                              Predicate predicate)
+    : array(reinterpret_cast<T*>(array)),
       predicate(predicate),
       size(0),
       capacity(capacity) {
-  memory::set8((uint8_t*) array, 0, capacity * sizeof(T));
+  memory::set8(reinterpret_cast<uint8_t*>(array), 0, capacity * sizeof(T));
 }
 
 template<typename T>
@@ -44,9 +44,9 @@ void OrderedArray<T>::Insert(const T& item) {
   uint32_t iterator = 0;
   while (iterator < size && predicate(array[iterator], item))
     ++iterator;
-  if (iterator == size)
+  if (iterator == size) {
     array[size++] = item;
-  else {
+  } else {
     T tmp = array[iterator];
     array[iterator] = item;
     while (iterator < size) {

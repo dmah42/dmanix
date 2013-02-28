@@ -13,13 +13,13 @@
 extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 
 #define KHEAP_START         0xC0000000
-// TODO: Get this from initrd config
+// TODO(dominic): Get this from initrd config
 #define KHEAP_INITIAL_SIZE  0x00100000  // 1Mb Kernel heap
 #define KHEAP_END           0xCFFFF000
 
 #define UHEAP_START         0xD0000000
 #define UHEAP_INITIAL_SIZE  0x00400000  // 4Mb User heap
-#define UHEAP_END           0xDFFFF000           
+#define UHEAP_END           0xDFFFF000
 
 #define PAGE_SIZE           0x1000
 
@@ -40,9 +40,10 @@ struct Page {
 
 struct Table {
   Table() {
-    memory::set8((uint8_t*)pages, 0, sizeof(Page) * ARRAY_SIZE(pages));
+    memory::set8(reinterpret_cast<uint8_t*>(pages), 0,
+                 sizeof(Page) * ARRAY_SIZE(pages));
   }
-  // TODO: copy ctor
+  // TODO(dominic): copy ctor
   Table* Clone(uint32_t* physical);
 
   Page pages[1024];
@@ -71,7 +72,7 @@ void SwitchPageDirectory(Directory* dir) {
   asm volatile("mov %0, %%cr0" : : "r" (cr0));
 }
 
-// TODO: mode 13 version
+// TODO(dominic): mode 13 version
 void PageFault(isr::Registers* regs) {
   uint32_t faulting_address;
   asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
@@ -93,7 +94,7 @@ void PageFault(isr::Registers* regs) {
   if (reserved) screen::puts("reserved ");
   if (instruction) screen::puts("instruction ");
   screen::Printf(") at 0x%x - EIP: \n", faulting_address, regs->eip);
-  PANIC("Page fault"); 
+  PANIC("Page fault");
 }
 
 }  // namespace
@@ -129,11 +130,11 @@ void Initialize(uint32_t mem_end) {
   screen::Printf("%d MB RAM detected.\n", mem_end / (1024 * 1024));
   uint32_t num_frames = mem_end / PAGE_SIZE;
   void* frames_mem = kalloc(sizeof(bitset));
-  frames = new (frames_mem) bitset(num_frames);
+  frames = new (frames_mem) bitset(num_frames);  // NOLINT
 
   // Create the page directory
   void* kernel_directory_mem = kalloc_pa(sizeof(Directory));
-  kernel_directory = new (kernel_directory_mem) Directory();
+  kernel_directory = new (kernel_directory_mem) Directory();  // NOLINT
 
   // Map pages in the kernel heap area.
   // Call GetPage but not AllocFrame. Tables can be created where necessary and
@@ -163,7 +164,7 @@ void Initialize(uint32_t mem_end) {
     AllocFrame(kernel_directory->GetPage(i, true), false, true);
   }
 
-  // TODO: interrupt constants
+  // TODO(dominic): interrupt constants
   isr::RegisterHandler(14, PageFault);
 
   SwitchPageDirectory(kernel_directory);
@@ -179,13 +180,13 @@ void Initialize(uint32_t mem_end) {
 }
 
 void Shutdown() {
-  memory::Heap::Destroy(uheap);
+  Heap::Destroy(uheap);
   uheap = NULL;
 
-  memory::Heap::Destroy(kheap); 
+  Heap::Destroy(kheap);
   kheap = NULL;
 
-  // TODO: free all directories
+  // TODO(dominic): free all directories
   kernel_directory->~Directory();
   kfree(kernel_directory);
 
@@ -201,9 +202,11 @@ uint32_t GetPhysicalAddress(uint32_t address) {
 }
 
 Directory::Directory() : physicalAddress(0) {
-  memory::set8((uint8_t*)tables, 0, sizeof(Table*) * ARRAY_SIZE(tables));
-  memory::set8((uint8_t*)physical, 0, sizeof(uint32_t) * ARRAY_SIZE(physical));
-  physicalAddress = (uint32_t) physical;
+  memory::set8(reinterpret_cast<uint8_t*>(tables), 0,
+               sizeof(tables[0]) * ARRAY_SIZE(tables));
+  memory::set8(reinterpret_cast<uint8_t*>(physical), 0,
+               sizeof(physical[0]) * ARRAY_SIZE(physical));
+  physicalAddress = reinterpret_cast<uint32_t>(physical);
 }
 
 Directory::~Directory() {
@@ -218,7 +221,7 @@ Directory::~Directory() {
 Directory* Directory::Clone() {
   uint32_t phys;
   void* dir_mem = kalloc_pa(sizeof(Directory), &phys);
-  Directory* dir = new (dir_mem) Directory();
+  Directory* dir = new (dir_mem) Directory();  // NOLINT
 
   // Get offset of physical table
   uint32_t offset = (uint32_t)dir->physical - (uint32_t) dir;
@@ -236,7 +239,7 @@ Directory* Directory::Clone() {
       // Copy the table
       uint32_t phys;
       dir->tables[i] = tables[i]->Clone(&phys);
-      dir->physical[i] = phys | 0x7; // TODO: better flags
+      dir->physical[i] = phys | 0x7;  // TODO(dominic): better flags
     }
   }
 
@@ -250,7 +253,7 @@ Page* Directory::GetPage(uint32_t address, bool make) {
   if (tables[table_index] == NULL && make) {
     uint32_t tmp;
     void* table_mem = kalloc_pa(sizeof(Table), &tmp);
-    tables[table_index] = new (table_mem) Table();
+    tables[table_index] = new (table_mem) Table();  // NOLINT
     physical[table_index] = tmp | 0x7;
   }
 
@@ -260,13 +263,13 @@ Page* Directory::GetPage(uint32_t address, bool make) {
 
 Table* Table::Clone(uint32_t* physical) {
   void* table_mem = kalloc_pa(sizeof(Table), physical);
-  Table* table = new (table_mem) Table();
+  Table* table = new (table_mem) Table();  // NOLINT
 
   for (uint32_t i = 0; i < ARRAY_SIZE(pages); ++i) {
     if (pages[i].frame == 0)
       continue;
     AllocFrame(&table->pages[i], false, false);
-    // TODO: copy ctor
+    // TODO(dominic): copy ctor
     table->pages[i].present = pages[i].present;
     table->pages[i].rw = pages[i].rw;
     table->pages[i].user = pages[i].user;

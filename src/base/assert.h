@@ -8,9 +8,9 @@ void panic(const char*, const  char*, uint32_t);
 #define ASSERT(b)   if (b) { void(0); } else { PANIC(#b); }
 
 #ifdef DEBUG
-#define DEBUG_ASSERT(b)	ASSERT(b)
+#define DEBUG_ASSERT(b) ASSERT(b)
 #else
-#define DEBUG_ASSERT(b)	(void)(b);
+#define DEBUG_ASSERT(b) (void)(b);
 #endif
 
 #endif  // ASSERT_H

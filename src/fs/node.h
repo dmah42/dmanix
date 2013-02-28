@@ -9,12 +9,14 @@ struct DirEntry;
 
 class Node {
  public:
-  typedef uint32_t (*read_func)(Node*, uint32_t, uint32_t, uint8_t*);
-  typedef uint32_t (*write_func)(Node*, uint32_t, uint32_t, uint8_t*);
-  typedef void (*open_func)(Node*);
-  typedef void (*close_func)(Node*);
-  typedef DirEntry* (*readdir_func)(Node*, uint32_t);
-  typedef Node* (*finddir_func)(Node*, const char* name);
+  typedef uint32_t (*read_func)(Node* node, uint32_t offset, uint32_t size,
+                                uint8_t* buffer);
+  typedef uint32_t (*write_func)(Node* node, uint32_t offset, uint32_t size,
+                                 uint8_t* buffer);
+  typedef void (*open_func)(Node* node);
+  typedef void (*close_func)(Node* node);
+  typedef DirEntry* (*readdir_func)(Node* node, uint32_t index);
+  typedef Node* (*finddir_func)(Node* node, const char* name);
 
   Node();
   explicit Node(const char* node_name, uint32_t flags);

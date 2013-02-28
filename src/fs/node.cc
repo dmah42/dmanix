@@ -8,7 +8,7 @@
 namespace fs {
 
 Node::Node()
-    : perm(0), uid(0), gid(0), flags(0), inode(0), length(0), impl(0), 
+    : perm(0), uid(0), gid(0), flags(0), inode(0), length(0), impl(0),
       read(NULL), write(NULL), open(NULL), close(NULL),
       readdir(NULL), finddir(NULL),
       link(NULL) {
@@ -16,7 +16,7 @@ Node::Node()
 }
 
 Node::Node(const char* node_name, uint32_t flags)
-    : perm(0), uid(0), gid(0), flags(flags), inode(0), length(0), impl(0), 
+    : perm(0), uid(0), gid(0), flags(flags), inode(0), length(0), impl(0),
       read(NULL), write(NULL), open(NULL), close(NULL),
       readdir(NULL), finddir(NULL),
       link(NULL) {

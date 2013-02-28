@@ -34,7 +34,7 @@ class Heap {
     uint32_t padding : 1;
   };
 
-  static bool HeaderLessThan(Header* const& a, Header* const& b);
+  static bool HeaderLessThan(Header* const& a, Header* const& b);  // NOLINT
   static void DumpHeader(Header* h);
   static void VerifyHeader(Header* h);
 
@@ -46,7 +46,7 @@ class Heap {
   void Expand(uint32_t new_size);
   uint32_t Contract(uint32_t new_size);
 
-  void VisitAllHeaders(void (*callback)(Header*));
+  void VisitAllHeaders(void (*callback)(Header* h));
 
   OrderedArray<Header*> index;
   uint32_t start_address;
