@@ -245,7 +245,7 @@ void UserMode() {
   // 0x23 is user mode data segment selector (0x20 | 0x3) and 0x1B is user mode
   // code segment selector (0x18 | 0x3).
   // push $1f pushes the address of the 1: label.
-  // TODO(dominic): enable interrupts safely:
+  // TODO(dominic): enable interrupts safely by replacing the sti with:
   //
   // pop %eax;
   // or %eax, $0x200;
@@ -258,6 +258,7 @@ void UserMode() {
       mov %ax, %fs;     \
       mov %ax, %gs;     \
                         \
+      sti;              \
       mov %esp, %eax;   \
       pushl $0x23;      \
       pushl %eax;       \
