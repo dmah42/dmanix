@@ -1,10 +1,10 @@
 #include <assert.h>
 #include <stdint.h>
-#include <iostream>
+#include <stdio.h>
 
 #include "gtest/gtest.h"
 
 void panic(const char* msg, const char* file, uint32_t line) {
-  std::cerr << msg << " at " << file << ":" << line << "\n";
+  fprintf(stderr, "%s at %s:%u\n", msg, file, line);
   assert(false);
 }
