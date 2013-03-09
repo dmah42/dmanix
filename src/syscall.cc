@@ -4,16 +4,17 @@
 #include "base/assert.h"
 #include "interrupt/isr.h"
 #include "screen.h"
+#include "task.h"
 
 #define DEFN_SYSCALL0(fn, num)                      \
-int _##fn() {                                       \
+int fn() {                                       \
   int a;                                            \
   asm volatile("int $0x80" : "=a" (a) : "0" (num)); \
   return a;                                         \
 }
 
 #define DEFN_SYSCALL1(fn, num, P1)                    \
-int _##fn(P1 p1) {                                    \
+int fn(P1 p1) {                                    \
   int a;                                              \
   asm volatile("int $0x80" : "=a" (a)                 \
       : "0" (num), "b" (reinterpret_cast<int>(p1)));  \
@@ -21,7 +22,7 @@ int _##fn(P1 p1) {                                    \
 }
 
 #define DEFN_SYSCALL2(fn, num, P1, P2)           \
-int _##fn(P1 p1, P2 p2) {                        \
+int fn(P1 p1, P2 p2) {                        \
   int a;                                         \
   asm volatile("int $0x80" : "=a" (a)            \
       : "0" (num),                               \
@@ -33,12 +34,14 @@ int _##fn(P1 p1, P2 p2) {                        \
 namespace syscall {
 
 // TODO(dominic): better way of registering these.
-DEFN_SYSCALL1(puts, 0, const char*)
+DEFN_SYSCALL1(screen_puts, 0, const char*)
+DEFN_SYSCALL0(task_fork, 1)
 
 namespace {
 
 void* syscalls[] = {
-  reinterpret_cast<void*>(&screen::puts)
+  reinterpret_cast<void*>(&screen::puts),
+  reinterpret_cast<void*>(&task::Fork)
 };
 
 void Handler(isr::Registers* regs) {
