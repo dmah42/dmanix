@@ -205,7 +205,7 @@ uint32_t Elf32Parser::FindDynamicSymbolAddress(uint32_t offset) const {
   SectionHeader* sh = relocation_table_;
   if (sh->type == SHT_REL)
     return reinterpret_cast<Relocation*>(sh->address + offset)->offset;
-  return NULL;
+  return 0;
 }
 
 const char* Elf32Parser::FindDynamicSymbolName(uint32_t offset) const {
