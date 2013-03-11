@@ -6,7 +6,8 @@
 #include "multiboot.h"
 #include "screen.h"
 #include "syscall.h"
-#include "task.h"
+#include "process/elf32_parser.h"
+#include "process/task.h"
 #include "test.h"
 #include "timer.h"
 
@@ -28,7 +29,11 @@ extern Heap* kheap;
 extern uint32_t base_address;
 }
 
+process::Elf32Parser kelf32_parser(mbd->u.elf_sec);
+
 int main() {
+  ASSERT(mbd->CheckFlag(multiboot::FLAG_ELF));
+
   dt::Initialize();
   screen::Initialize();
 

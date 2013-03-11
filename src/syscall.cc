@@ -3,6 +3,7 @@
 #include "base/array_size.h"
 #include "base/assert.h"
 #include "interrupt/isr.h"
+#include "process/task.h"
 #include "screen.h"
 #include "string.h"
 #include "task.h"
@@ -30,6 +31,13 @@ int syscall1(uint32_t index, int p0) {
 int syscall2(uint32_t index, int p0, int p1) {
   int a;
   asm volatile("int $0x80" : "=a" (a) : "0" (index), "b" (p0), "c" (p1));
+  return a;
+}
+
+int syscall3(uint32_t index, int p0, int p1, int p2) {
+  int a;
+  asm volatile("int $0x80" : "=a" (a)
+                           : "0" (index), "b" (p0), "c" (p1), "d" (p2));
   return a;
 }
 
@@ -96,6 +104,11 @@ int Call(const char* name, uint32_t num_args, ...) {
 
         case 2:
           result = syscall2(index, va_arg(args, int), va_arg(args, int));
+          break;
+
+        case 3:
+          result = syscall3(
+              index, va_arg(args, int), va_arg(args, int), va_arg(args, int));
           break;
 
         default:

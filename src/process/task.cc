@@ -5,8 +5,13 @@
 #include "memory/kalloc.h"
 #include "memory/memory.h"
 #include "memory/paging.h"
+#include "process/dynamic_linker.h"
+#include "process/elf32_parser.h"
 
 #define KERNEL_STACK_SIZE 2048
+
+#define STACK_START 0xE0000000
+#define STACK_SIZE  0x2000
 
 // from boot.s
 extern "C" uint32_t stack;
@@ -46,6 +51,8 @@ struct Task {
   static uint32_t next_pid;
 
   uint32_t pid;
+  // TODO(dominic): All registers
+  uint32_t eax, ebx;
   uint32_t esp, ebp;
   uint32_t eip;
   uint32_t stack;  // kernel stack location
@@ -113,7 +120,7 @@ void MoveStack(void* new_stack, uint32_t size) {
 void Initialize() {
   asm volatile("cli");
 
-  MoveStack(reinterpret_cast<void*>(0xE0000000), 0x2000);
+  MoveStack(reinterpret_cast<void*>(STACK_START), STACK_SIZE);
 
   // Initialize the first (kernel) task
   void* current_mem = kalloc(sizeof(Task));
@@ -124,6 +131,7 @@ void Initialize() {
   asm volatile("sti");
 
   syscall::Register("task::fork", reinterpret_cast<void*>(&Fork));
+  syscall::Register("task::execve", reinterpret_cast<void*>(&ExecVE));
 }
 
 void Shutdown() {
@@ -235,6 +243,53 @@ void Switch() {
           "r" (esp),
           "r" (ebp),
           "r" (memory::current_directory->physicalAddress));
+}
+
+void ExecVE(const char* prog, const char** argv, const char** env) {
+  process::Elf32Parser parser(prog);
+
+  // Allocate argument buffers on kernel heap and copy argv in.
+  // Allocate env buffers on kernel heap and copy env in.
+  int arg_length = 0;
+  int env_length = 0;
+  while (argv != NULL && env != NULL) {
+    if (argv != NULL) {
+      ++arg_length;
+      ++argv;
+    }
+
+    if (env != NULL) {
+      ++env_length;
+      ++env;
+    }
+  }
+  char** arguments = reinterpret_cast<char**>(kalloc((arg_length + 1) * sizeof(char*)));
+  char** environment = reinterpret_cast<char**>(kalloc((env_length + 1) * sizeof(char*)));
+  // TODO(dominic): copy argv in.
+  // TODO(dominic): copy env in.
+
+  parser.WriteAllSections();
+
+  // TODO(dominic): Possibly set breakpoint here to limit of addressable memory
+  // below stack.
+
+  process::DynamicLinker linker(parser);
+
+  // On returning from this interrupt, the cpu statu should be:
+  // eax: ptr to argv list on heap.
+  // ebx: ptr to env list on heap.
+  // esp: STACK_START - 0x100.
+  //
+  // crt0.s should be something like
+  // push ebx
+  // push eax
+  // call _premain
+  // hlt
+
+  current->eax = (uint32_t) arguments;
+  current->ebx = (uint32_t) environment;
+  current->eip = parser.entry_point();
+  current->esp = STACK_START - 0x100;
 }
 
 uint32_t PID() {

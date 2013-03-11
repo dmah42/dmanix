@@ -11,6 +11,7 @@
 
 // from process.s
 extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
+extern "C" void flush_page_directory();
 
 #define KHEAP_START         0xC0000000
 // TODO(dominic): Get this from initrd config
@@ -22,6 +23,7 @@ extern "C" void copy_page_physical(uint32_t dest, uint32_t src);
 #define UHEAP_END           0xDFFFF000
 
 #define PAGE_SIZE           0x1000
+#define PAGE_MASK           0xFFFFF000
 
 namespace memory {
 
@@ -199,6 +201,19 @@ void Shutdown() {
 uint32_t GetPhysicalAddress(uint32_t address) {
   Page* page = current_directory->GetPage(address, false);
   return FRAME_TO_ADDR(page->frame) + (address & 0x0FFF);
+}
+
+void AllocateRange(uint32_t address, uint32_t size) {
+  uint32_t end = address + size;
+  //processManager->getProcess()->memoryMap.map(startAddress, endAddress-startAddress, MemoryMap::Local);
+  address &= PAGE_MASK;
+  end &= PAGE_MASK;
+
+  for (uint32_t i = address; i <= end; i += PAGE_SIZE)
+    AllocFrame(current_directory->GetPage(i, true), false, true);
+
+  // Flush page directory.
+  flush_page_directory();
 }
 
 Directory::Directory() : physicalAddress(0) {

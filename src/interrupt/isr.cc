@@ -24,7 +24,9 @@ void UnregisterHandler(Interrupt interrupt, Handler h) {
 extern "C" {
 void isr_handler(isr::Registers regs) {
   if (isr::handlers[regs.int_no] != 0) {
+    // TODO(dominic): Set current task register pointer to regs
     isr::handlers[regs.int_no](&regs);
+    // TODO(dominic): Set current task register pointer back to oldregs
   } else {
     screen::SetColor(COLOR_BLACK, COLOR_DARK_GREEN);
     screen::puts("UNHANDLED INTERRUPT: ");
@@ -49,8 +51,11 @@ void irq_handler(isr::Registers regs) {
     io::outb(0xA0, 0x20);
   io::outb(0x20, 0x20);
 
-  if (isr::handlers[regs.int_no] != NULL)
+  if (isr::handlers[regs.int_no] != NULL) {
+    // TODO(dominic): Set current task register pointer to regs
     isr::handlers[regs.int_no](&regs);
+    // TODO(dominic): Set current task register pointer back to oldregs
+  }
 }
 }
 
