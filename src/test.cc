@@ -10,6 +10,7 @@
 #include "timer.h"
 
 namespace fs {
+// from fs.cc
 extern Node* root;
 }
 
@@ -204,7 +205,7 @@ void initrd() {
 
 void user_mode() {
   task::UserMode();
-  syscall::Call("screen::puts", 1, "User mode syscall\n");
+  syscall::Call("screen::puts", 1, "Hello from user mode!\n");
 }
 
 }  // namespace test

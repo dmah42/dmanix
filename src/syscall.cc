@@ -37,8 +37,6 @@ vector<const char*, MAX_SYSCALLS> syscall_fn_lookup;
 vector<void*, MAX_SYSCALLS> syscall_fns;
 
 void Handler(isr::Registers* regs) {
-  screen::Printf("Calling syscall %u '%s'\n",
-                 regs->eax, syscall_fn_lookup.at(regs->eax));
   void* function = syscall_fns.at(regs->eax);
 
   // Push all the parameters in the correct order.
