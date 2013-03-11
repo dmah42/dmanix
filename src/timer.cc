@@ -14,7 +14,7 @@ Callback callback = NULL;
 
 void OnTick(isr::Registers*) {
   ++tick;
-  task::Switch();
+  process::Switch();
   if (callback != NULL)
     callback(tick);
 }

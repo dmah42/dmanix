@@ -1,12 +1,13 @@
 #include "task.h"
 
-#include <new>
-
 #include "memory/kalloc.h"
 #include "memory/memory.h"
 #include "memory/paging.h"
 #include "process/dynamic_linker.h"
 #include "process/elf32_parser.h"
+#include "syscall.h"
+
+#include <new>
 
 #define KERNEL_STACK_SIZE 2048
 
@@ -33,7 +34,7 @@ extern Page* GetPage(uint32_t address, bool make, Directory* dir);
 extern void AllocFrame(Page* page, bool is_kernel, bool is_writeable);
 }  // namespace memory
 
-namespace task {
+namespace process {
 namespace {
 
 struct Task {
@@ -130,8 +131,8 @@ void Initialize() {
 
   asm volatile("sti");
 
-  syscall::Register("task::fork", reinterpret_cast<void*>(&Fork));
-  syscall::Register("task::execve", reinterpret_cast<void*>(&ExecVE));
+  syscall::Register("task::fork", reinterpret_cast<void*>(&process::Fork));
+  syscall::Register("task::execve", reinterpret_cast<void*>(&process::ExecVE));
 }
 
 void Shutdown() {
@@ -347,4 +348,4 @@ void KernelMode() {
     1:");
 }
 
-}  // namespace task
+}  // namespace process

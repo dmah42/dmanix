@@ -7,10 +7,12 @@
 // From process.s
 extern "C" void resolveSymbol_asm(void);
 
-extern "C" uint32_t resolveSymbol(uint32_t library, uint32_t symbol)
-{
-  uint32_t a = process::current->linker()->Resolve(library, symbol);
-  return a;
+extern "C" uint32_t resolveSymbol(uint32_t library, uint32_t symbol) {
+  // TODO(dominic)
+  // uint32_t a = process::current->linker()->Resolve(library, symbol);
+  // return a;
+  (void) library; (void) symbol;
+  return 0;
 }
 
 // From main.cc
@@ -26,7 +28,7 @@ DynamicLinker::DynamicLinker(const Elf32Parser& parser)
     ++global_offset_table_;
     *global_offset_table_ = 0;
     ++global_offset_table_;
-    *global_offset_table_ = reinterpret_cast<uint32_t>(&resolve);
+    *global_offset_table_ = reinterpret_cast<uint32_t>(&resolveSymbol_asm);
   }
 }
 

@@ -6,7 +6,6 @@
 #include "process/task.h"
 #include "screen.h"
 #include "string.h"
-#include "task.h"
 #include "vector.h"
 
 #include <stdarg.h>
@@ -77,7 +76,6 @@ void Shutdown() {
 }
 
 void Register(const char* name, void* fn) {
-  screen::Printf("Registering syscall '%s' at %u\n", name, syscall_fns.size());
   syscall_fn_lookup.push_back(name);
   syscall_fns.push_back(fn);
   ASSERT(syscall_fns.size() == syscall_fn_lookup.size());

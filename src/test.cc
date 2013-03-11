@@ -30,9 +30,9 @@ void timer_callback(uint32_t tick) {
 
 void fork() {
   // create a new process in a new address space which is a clone
-  uint32_t ret = task::Fork();
+  uint32_t ret = process::Fork();
   screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
-                 ret, task::PID());
+                 ret, process::PID());
   screen::puts("=========================================\n");
 }
 
@@ -202,7 +202,7 @@ void initrd() {
 }
 
 void user_mode() {
-  task::UserMode();
+  process::UserMode();
   syscall::Call("screen::puts", 1, "Hello from user mode!\n");
 }
 

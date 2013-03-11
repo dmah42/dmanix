@@ -50,7 +50,7 @@ int main() {
   // TODO(dominic): memory map..
   memory::Initialize(mbd->mem_upper);
 
-  task::Initialize();
+  process::Initialize();
 
   screen::SetColor(COLOR_WHITE, COLOR_BLACK);
   screen::puts("Welcome to ");
