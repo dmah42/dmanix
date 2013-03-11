@@ -30,7 +30,7 @@ extern uint32_t base_address;
 
 int main() {
   dt::Initialize();
-  screen::Clear();
+  screen::Initialize();
 
   asm volatile("sti");
   timer::Initialize(50);
@@ -42,7 +42,7 @@ int main() {
   memory::base_address = mod[mbd->mods_count - 1].end_address;
 
   // test::memory();
-  // TODO(dominic): lower memory.
+  // TODO(dominic): memory map..
   memory::Initialize(mbd->mem_upper);
 
   task::Initialize();
@@ -93,4 +93,10 @@ int main() {
   // Loop forever instead of exiting to halt.
   for (;;) {}
   return 0;
+}
+
+// Required for GCC
+void *__dso_handle;
+extern "C" void __cxa_atexit(void (* f)(void *), void *arg, void *dso_handle) {
+  (void) f; (void) arg; (void) dso_handle;
 }

@@ -35,19 +35,17 @@ class vector {
   bool empty() const { return size() == 0U; }
 
  private:
-  T* array_;
+  T array_[N];
   uint32_t size_;
 };
 
 template <typename T, uint32_t N>
 vector<T, N>::vector()
-    : array_(reinterpret_cast<T*>(kalloc(N))),
-      size_(0) {
+    : size_(0) {
 }
 
 template <typename T, uint32_t N>
 vector<T, N>::~vector() {
-  kfree(array_);
 }
 
 template <typename T, uint32_t N>
