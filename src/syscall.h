@@ -1,17 +1,18 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#define DECL_SYSCALL0(fn)             int _##fn();
-#define DECL_SYSCALL1(fn, p1)         int _##fn(p1);
-#define DECL_SYSCALL2(fn, p1, p2)     int _##fn(p1, p2);
+#include <stdint.h>
 
 namespace syscall {
 
 void Initialize();
 void Shutdown();
 
-// TODO(dominic): better way of declaring these
-DECL_SYSCALL1(puts, const char*)
+// TODO(dominic): Consider template to allow typename Function. This would bring
+// the vector into the header though.
+void Register(const char* name, void* fn);
+
+int Call(const char* name, uint32_t num_args, ...);
 
 }  // namespace syscall
 

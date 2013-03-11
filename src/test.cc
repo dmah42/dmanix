@@ -204,7 +204,7 @@ void initrd() {
 
 void user_mode() {
   task::UserMode();
-  syscall::_puts("User mode syscall\n");
+  syscall::Call("screen::puts", 1, "User mode syscall\n");
 }
 
 }  // namespace test

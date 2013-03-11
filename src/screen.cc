@@ -5,6 +5,7 @@
 #include "base/assert.h"
 #include "base/io.h"
 #include "memory/memory.h"
+#include "syscall.h"
 
 #define NUM_ROWS 25
 #define NUM_COLS 80
@@ -56,8 +57,6 @@ void Scroll() {
   }
 }
 
-}  // namespace
-
 void putc(char c) {
   // backspace
   if (c == 0x08 && cursor.x > 0)
@@ -87,12 +86,6 @@ void putc(char c) {
   }
   Scroll();
   cursor.Move();
-}
-
-void puts(const char* s) {
-  const char* ps = s;
-  while (*ps != '\0')
-    putc(*ps++);
 }
 
 void puth(uint32_t hex) {
@@ -134,6 +127,13 @@ void putd(int32_t dec) {
   putu(dec);
 }
 
+}  // namespace
+
+void Initialize() {
+  syscall::Register("screen::puts", reinterpret_cast<void*>(&puts));
+  Clear();
+}
+
 // TODO(dominic): take care of which mode we're in.
 void Clear() {
   const uint8_t default_attrib = (back_color << 4) | (fore_color & 0xF);
@@ -142,6 +142,12 @@ void Clear() {
   memory::set16(text_vram, blank, NUM_COLS * NUM_ROWS - 1);
   cursor.Reset();
   cursor.Move();
+}
+
+void puts(const char* s) {
+  const char* ps = s;
+  while (*ps != '\0')
+    putc(*ps++);
 }
 
 void Printf(const char* format, ...) {
