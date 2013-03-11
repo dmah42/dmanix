@@ -122,6 +122,8 @@ void Initialize() {
   queue = current;
 
   asm volatile("sti");
+
+  syscall::Register("task::fork", reinterpret_cast<void*>(&Fork));
 }
 
 void Shutdown() {
