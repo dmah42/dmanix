@@ -7,6 +7,8 @@ namespace fs {
 
 struct DirEntry;
 
+// TODO(dominic): Make this an interface so open et al can be specialized
+// instead of using dispatch to fn ptrs.
 class Node {
  public:
   typedef uint32_t (*read_func)(Node* node, uint32_t offset, uint32_t size,

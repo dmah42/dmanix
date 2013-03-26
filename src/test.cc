@@ -4,12 +4,13 @@
 #include "fs/node.h"
 #include "memory/kalloc.h"
 #include "memory/heap.h"
+#include "process/task.h"
 #include "screen.h"
 #include "syscall.h"
-#include "task.h"
 #include "timer.h"
 
 namespace fs {
+// from fs.cc
 extern Node* root;
 }
 
@@ -29,9 +30,9 @@ void timer_callback(uint32_t tick) {
 
 void fork() {
   // create a new process in a new address space which is a clone
-  uint32_t ret = task::Fork();
+  uint32_t ret = process::Fork();
   screen::Printf("Fork returned 0x%x and getpid() returned 0x%x\n",
-                 ret, task::PID());
+                 ret, process::PID());
   screen::puts("=========================================\n");
 }
 
@@ -190,11 +191,9 @@ void initrd() {
     if ((fsnode->flags & fs::FLAG_DIRECTORY) == fs::FLAG_DIRECTORY) {
       screen::puts("\t(directory)\n");
     } else {
-      screen::puts("\tcontents:\n\t\"");
       char buf[256];
       fsnode->Read(0, sizeof(buf), reinterpret_cast<uint8_t*>(buf));
-      screen::puts(buf);
-      screen::puts("\"\n");
+      screen::Printf("\tcontents:\n\t\"%s\"\n", buf);
     }
     ++i;
   }
@@ -203,8 +202,8 @@ void initrd() {
 }
 
 void user_mode() {
-  task::UserMode();
-  syscall::_puts("User mode syscall\n");
+  process::UserMode();
+  syscall::Call("screen::puts", 1, "Hello from user mode!\n");
 }
 
 }  // namespace test

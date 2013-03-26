@@ -23,6 +23,8 @@ struct DirEntry {
   uint32_t inode;
 };
 
+Node* Traverse(const char* filename);
+
 }  // namespace fs
 
 #endif  // FS_H

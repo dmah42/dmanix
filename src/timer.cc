@@ -4,7 +4,7 @@
 
 #include "base/io.h"
 #include "interrupt/isr.h"
-#include "task.h"
+#include "process/task.h"
 
 namespace timer {
 namespace {
@@ -14,7 +14,7 @@ Callback callback = NULL;
 
 void OnTick(isr::Registers*) {
   ++tick;
-  task::Switch();
+  process::Switch();
   if (callback != NULL)
     callback(tick);
 }

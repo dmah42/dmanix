@@ -24,9 +24,11 @@ enum Color {
 
 namespace screen {
 
-void puts(const char* s);
+void Initialize();
 
 void Clear();
+
+void puts(const char* s);
 void Printf(const char* format, ...);
 
 void ResetColor();
@@ -37,7 +39,6 @@ void Mode13h();
 
 void Pixel(uint16_t x, uint16_t y, Color color);
 void Line(uint16_t sx, uint16_t sy, uint16_t ex, uint16_t ey, Color c);
-
 
 }  // namespace screen
 

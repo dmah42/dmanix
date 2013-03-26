@@ -24,6 +24,7 @@ void Initialize(uint32_t mem_end);
 void Shutdown();
 
 uint32_t GetPhysicalAddress(uint32_t address);
+void AllocateRange(uint32_t address, uint32_t size);
 
 }  // namespace memory
 

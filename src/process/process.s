@@ -1,5 +1,4 @@
 global copy_page_physical
-
 copy_page_physical:
   push  ebx             ; according to __cdecl, we must preserve the contents
                         ; of ebx
@@ -35,3 +34,17 @@ global read_eip
 read_eip:
   pop   eax
   jmp   eax
+
+global flush_page_directory
+flush_page_directory:
+  mov   eax, cr3
+  mov   cr3, eax
+  ret
+
+extern resolveSymbol
+global resolveSymbol_asm
+resolveSymbol_asm:
+  call resolveSymbol
+  pop ecx               ; Remove library ID parameter
+  pop ecx               ; Remove symbol offset parameter
+  jmp eax
