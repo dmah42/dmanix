@@ -3,10 +3,10 @@
 #include "gtest/gtest.h"
 
 TEST(ARRAY_SIZE, ARRAY_SIZE) {
-  static const size_t sz = 128;
-  char buff[sz];
-  int ibuff[sz];
+  static const size_t kSz = 128;
+  char buff[kSz];
+  int ibuff[kSz];
 
-  EXPECT_EQ(sz, ARRAY_SIZE(buff));
-  EXPECT_EQ(sz, ARRAY_SIZE(ibuff));
+  EXPECT_EQ(kSz, ARRAY_SIZE(buff));
+  EXPECT_EQ(kSz, ARRAY_SIZE(ibuff));
 }
