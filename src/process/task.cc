@@ -264,8 +264,10 @@ void ExecVE(const char* prog, const char** argv, const char** env) {
       ++env;
     }
   }
-  char** arguments = reinterpret_cast<char**>(kalloc((arg_length + 1) * sizeof(char*)));
-  char** environment = reinterpret_cast<char**>(kalloc((env_length + 1) * sizeof(char*)));
+  char** arguments = reinterpret_cast<char**>(
+      kalloc((arg_length + 1) * sizeof(char*)));
+  char** environment = reinterpret_cast<char**>(
+      kalloc((env_length + 1) * sizeof(char*)));
   // TODO(dominic): copy argv in.
   // TODO(dominic): copy env in.
 

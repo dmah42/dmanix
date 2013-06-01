@@ -10,8 +10,8 @@
 #include "string.h"
 
 #define SHT_PROGBITS      0x1     // The data is contained in the program file.
-#define SHT_SYMTAB	      0x2	  // Symbol table
-#define SHT_STRTAB	      0x3	  // String table
+#define SHT_SYMTAB        0x2     // Symbol table
+#define SHT_STRTAB        0x3     // String table
 #define SHT_RELA          0x4
 #define SHT_HASH          0x5     // Symbol hash table
 #define SHT_DYNAMIC       0x6     // Dynamic linking information
@@ -62,8 +62,7 @@ struct Elf32Parser::Symbol {
 
 struct Elf32Parser::Dynamic {
   int32_t tag;
-  union
-  {
+  union {
     int32_t val;
     uint32_t ptr;
   } un;
@@ -94,7 +93,7 @@ Elf32Parser::Elf32Parser(const char* filename)
   ASSERT(result == static_cast<uint32_t>(header_.shnum * header_.shentsize));
 
   string_table_ = &(section_headers_[header_.shstring_index]);
-  
+
   for (uint32_t i = 0; i < header_.shnum; ++i) {
     if (section_headers_[i].type == SHT_SYMTAB) {
       symbol_table_ = &(section_headers_[i]);
@@ -190,7 +189,7 @@ const char* Elf32Parser::FindSymbolName(uint32_t address,
 
 uint32_t Elf32Parser::FindSymbolAddress(const char* name) const {
   Symbol* symbol = reinterpret_cast<Symbol*>(symbol_table_->address);
-  
+
   for (uint32_t i = 0; i < symbol_table_->size / sizeof(Symbol); ++i) {
     const char* symbol_name =
         reinterpret_cast<const char*>(symbol->name) + string_table_->address;

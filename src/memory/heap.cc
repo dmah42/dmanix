@@ -175,10 +175,11 @@ void Heap::Free(void* p) {
   }
 
   // Coalesce right
-  Header* right_header = (Header*) ((uint32_t)footer + sizeof(Footer));
+  Header* right_header = reinterpret_cast<Header*>(
+      (uint32_t)footer + sizeof(Footer));
   if (right_header->magic == HEAP_MAGIC && right_header->is_hole) {
     header->size += right_header->size;
-    Footer* right_footer = (Footer*)(
+    Footer* right_footer = reinterpret_cast<Footer*>(
         (uint32_t)right_header + right_header->size - sizeof(Footer));
     footer = right_footer;
     footer->size = header->size;
@@ -198,7 +199,8 @@ void Heap::Free(void* p) {
     uint32_t new_length = Contract((uint32_t)header - start_address);
     if (header->size - (old_length - new_length) > 0) {
       header->size -= old_length - new_length;
-      footer = (Footer*) ((uint32_t)header + header->size - sizeof(Footer));
+      footer = reinterpret_cast<Footer*>(
+          (uint32_t)header + header->size - sizeof(Footer));
       footer->magic = HEAP_MAGIC;
       footer->size = header->size;
     } else {

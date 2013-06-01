@@ -14,7 +14,7 @@ namespace process {
 class Elf32Parser {
  public:
   struct SectionHeader;
-   
+
   explicit Elf32Parser(const char* filename);
   explicit Elf32Parser(
       const multiboot::ELFSectionHeaderTable& elf_sec);

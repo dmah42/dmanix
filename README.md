@@ -3,7 +3,7 @@ dmanix
 It's an i386 OS.
 
 One time setup:
-$ sudo mkdir /mnt/dmaos\_floppy
+$ sudo mkdir /mnt/dmanix\_floppy
 
 To build:
 $ make [debug|release]

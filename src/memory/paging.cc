@@ -205,7 +205,8 @@ uint32_t GetPhysicalAddress(uint32_t address) {
 
 void AllocateRange(uint32_t address, uint32_t size) {
   uint32_t end = address + size;
-  //processManager->getProcess()->memoryMap.map(startAddress, endAddress-startAddress, MemoryMap::Local);
+  // processManager->getProcess()->memoryMap.map(
+  //    startAddress, endAddress-startAddress, MemoryMap::Local);
   address &= PAGE_MASK;
   end &= PAGE_MASK;
 

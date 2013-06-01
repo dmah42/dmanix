@@ -12,8 +12,8 @@ void panic(const char*, const  char*, uint32_t);
 #define DEBUG_ASSERT(b)          ASSERT(b)
 #define DEBUG_ASSERT_MSG(b, msg) ASSERT_MSG(b, msg)
 #else
-#define DEBUG_ASSERT(b)          do { (void)(b); } while(0)
-#define DEBUG_ASSERT_MSG(b, msg) do { (void)(b); (void)(msg); } while(0)
+#define DEBUG_ASSERT(b)          do { (void)(b); } while (0)
+#define DEBUG_ASSERT_MSG(b, msg) do { (void)(b); (void)(msg); } while (0)
 #endif
 
 #endif  // ASSERT_H
