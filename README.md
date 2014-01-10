@@ -3,20 +3,24 @@ dmanix
 It's an i386 OS.
 
 One time setup:
-$ sudo mkdir /mnt/dmanix\_floppy
+
+    $ sudo mkdir /mnt/dmanix\_floppy
 
 To build:
-$ make [debug|release]
-$ scripts/update.sh
-$ scripts/run.sh
+
+    $ make [debug|release]
+    $ scripts/update.sh
+    $ scripts/run.sh
 
 debug build defines DEBUG, release build defines NDEBUG
 
 To run the tests:
-$ test/test_all
+
+    $ test/test_all
 
 Before submitting:
-$ scripts/presubmit.sh
+
+    $ scripts/presubmit.sh
 
 Allowed c++ headers:
 * ciso646
