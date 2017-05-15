@@ -65,6 +65,9 @@ int main() {
   // test::mode13();
 
   // TODO(dominic): switch to user mode and launch a launcher executable
+  process::UserMode();
+  syscall::Call("screen::puts", 1, "Hello from user mode!\n");
+  process::KernelMode();
 
   // TODO(dominic): switch back to kernel mode before hitting this block
   screen::puts("Shutting down... ");
