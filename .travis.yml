@@ -1,0 +1,4 @@
+install: make
+language: cpp
+script: make && make test
+compiler: gcc
