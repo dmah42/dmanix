@@ -1,6 +1,6 @@
 dmanix
 =====
-It's an i386 OS.
+It's an i386 OS written in C++.
 
 One time setup:
 

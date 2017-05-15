@@ -9,14 +9,14 @@
 #include "multiboot.h"
 #include "string.h"
 
-#define SHT_PROGBITS      0x1     // The data is contained in the program file.
-#define SHT_SYMTAB        0x2     // Symbol table
-#define SHT_STRTAB        0x3     // String table
+#define SHT_PROGBITS      0x1  // The data is contained in the program file.
+#define SHT_SYMTAB        0x2  // Symbol table
+#define SHT_STRTAB        0x3  // String table
 #define SHT_RELA          0x4
-#define SHT_HASH          0x5     // Symbol hash table
-#define SHT_DYNAMIC       0x6     // Dynamic linking information
+#define SHT_HASH          0x5  // Symbol hash table
+#define SHT_DYNAMIC       0x6  // Dynamic linking information
 #define SHT_NOTE          0x7
-#define SHT_NOBITS        0x8     // The data is not contained in the program file.
+#define SHT_NOBITS        0x8  // The data is not contained in the program file.
 #define SHT_REL           0x9
 #define SHT_DYNSYM        0xb
 #define SHT_INIT_ARRAY    0xe
