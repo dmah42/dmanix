@@ -9,16 +9,6 @@
 #include "syscall.h"
 #include "timer.h"
 
-namespace fs {
-// from fs.cc
-extern Node* root;
-}
-
-namespace memory {
-// from paging.cc
-extern Heap* kheap;
-}
-
 namespace test {
 namespace {
 

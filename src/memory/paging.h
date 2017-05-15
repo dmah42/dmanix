@@ -26,6 +26,8 @@ void Shutdown();
 uint32_t GetPhysicalAddress(uint32_t address);
 void AllocateRange(uint32_t address, uint32_t size);
 
+extern Directory* kernel_directory;
+
 }  // namespace memory
 
 #endif  // PAGING_H

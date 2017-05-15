@@ -1,4 +1,4 @@
-#include "heap.h"
+#include "memory/heap.h"
 
 #include <new>
 
@@ -13,11 +13,12 @@
 namespace memory {
 struct Page;
 
-extern Directory* kernel_directory;
-
 void AllocFrame(Page* page, bool is_kernel, bool is_writeable);
 void FreeFrame(Page* page);
 Page* GetPage(uint32_t address, bool make, Directory* dir);
+
+Heap* kheap = NULL;
+Heap* uheap = NULL;
 
 // static
 Heap* Heap::Create(uint32_t start, uint32_t end_addr, uint32_t max,

@@ -25,6 +25,8 @@ struct DirEntry {
 
 Node* Traverse(const char* filename);
 
+extern Node* root;
+
 }  // namespace fs
 
 #endif  // FS_H

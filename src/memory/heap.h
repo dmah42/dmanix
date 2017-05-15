@@ -56,6 +56,9 @@ class Heap {
   bool readonly;
 };
 
+extern Heap* kheap;
+extern Heap* uheap;
+
 }  // namespace memory
 
 #endif  // KMALLOC_H

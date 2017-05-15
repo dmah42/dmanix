@@ -2,6 +2,7 @@
 #include "fs/initrd.h"
 #include "fs/fs.h"
 #include "memory/heap.h"
+#include "memory/kalloc.h"
 #include "memory/paging.h"
 #include "multiboot.h"
 #include "screen.h"
@@ -11,23 +12,8 @@
 #include "test.h"
 #include "timer.h"
 
-// from kalloc.cc
-extern uint32_t base_address;
-
 // from boot.s
 extern "C" multiboot::Info* mbd;
-
-namespace fs {
-extern Node* root;
-}
-
-namespace memory {
-// from paging.cc
-extern Heap* kheap;
-
-// from kalloc.cc
-extern uint32_t base_address;
-}
 
 process::Elf32Parser kelf32_parser(mbd->u.elf_sec);
 

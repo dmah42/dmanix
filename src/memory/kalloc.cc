@@ -1,12 +1,10 @@
-#include "heap.h"
-#include "paging.h"
+#include "memory/heap.h"
+#include "memory/paging.h"
 
 // end is defined in the linker script.
 extern uint32_t end;
 
 namespace memory {
-extern Heap* kheap;
-extern Heap* uheap;
 
 uint32_t base_address = (uint32_t)&end;
 

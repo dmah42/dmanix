@@ -12,4 +12,8 @@ void kfree(void* p);
 void* ualloc(uint32_t size);
 void ufree(void* p);
 
+namespace memory {
+extern uint32_t base_address;
+}  // memory
+
 #endif  // KALLOC_H

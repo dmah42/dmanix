@@ -1,10 +1,13 @@
 #!/bin/bash
 
-sudo /sbin/losetup /dev/loop0 floppy.img
-sudo /bin/mount /dev/loop0 /mnt/dmanix_floppy
+FLOPPY=/mnt/dmanix_floppy
+LOOP0=/dev/loop0
+
+sudo /sbin/losetup $LOOP0 floppy.img
+sudo /bin/mount $LOOP0 $FLOPPY
 for f in kernel initrd; do
-  sudo cp $f /mnt/dmanix_floppy/$f
+  sudo cp $f $FLOPPY/$f
 done
 sleep 2
-sudo /bin/umount /mnt/dmanix_floppy
-sudo /sbin/losetup -d /dev/loop0
+sudo /bin/umount $FLOPPY
+sudo /sbin/losetup -d $LOOP0

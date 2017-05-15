@@ -1,4 +1,4 @@
-#include "paging.h"
+#include "memory/paging.h"
 
 #include <new>
 
@@ -53,9 +53,6 @@ struct Table {
 
 Directory* current_directory = NULL;
 Directory* kernel_directory = NULL;
-
-Heap* kheap = NULL;
-Heap* uheap = NULL;
 
 namespace {
 
